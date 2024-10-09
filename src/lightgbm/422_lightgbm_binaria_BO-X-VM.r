@@ -39,6 +39,7 @@ PARAM$experimento <- "HT4220"
 
 PARAM$input$dataset <- "./datasets/competencia_01.csv"
 PARAM$input$dataset <- "./datasets/X.csv"
+PARAM$input$dataset <- "./datasets/X.parquet"
 PARAM$input$training <- c(202104) # los meses en los que vamos a entrenar
 
 # un undersampling de 0.1  toma solo el 10% de los CONTINUA
@@ -224,8 +225,11 @@ ksemilla_azar1 <- PARAM$semillas[1]
 ksemilla_azar2 <- PARAM$semillas[2]
 
 # cargo el dataset donde voy a entrenar el modelo
-dataset <- fread(PARAM$input$dataset)
-nThread
+#dataset <- fread(PARAM$input$dataset)
+library(arrow)
+dataset <- open_dataset(PARAM$input$dataset)
+# Convert to data.table
+dataset <- as.data.table(dataset)
 
 # creo la carpeta donde va el experimento
 dir.create("./exp/", showWarnings = FALSE)
