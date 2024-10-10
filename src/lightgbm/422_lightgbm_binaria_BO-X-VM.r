@@ -35,11 +35,13 @@ options(error = function() {
 PARAM <- list()
 
 PARAM$semilla_primigenia <- 102191
-PARAM$experimento <- "HT4220"
+PARAM$experimento <- "HT4220_X"
 
 PARAM$input$dataset <- "./datasets/competencia_01.csv"
 PARAM$input$dataset <- "./datasets/X.csv"
 PARAM$input$dataset <- "./datasets/X.parquet"
+PARAM$input$dataset <- "./datasets/df_train_rank_time.parquet"
+
 PARAM$input$training <- c(202104) # los meses en los que vamos a entrenar
 
 # un undersampling de 0.1  toma solo el 10% de los CONTINUA
@@ -230,6 +232,19 @@ library(arrow)
 dataset <- open_dataset(PARAM$input$dataset)
 # Convert to data.table
 dataset <- as.data.table(dataset)
+clean_colnames <- function(names) {
+  names <- gsub("[^a-zA-Z0-9_]", "", names)  # Remove special characters
+  return(names)
+}
+
+# Apply to your column names
+colnames(dataset) <- clean_colnames(colnames(dataset))
+colnames(dataset) <- trimws(colnames(dataset))
+colnames(dataset) <- make.names(colnames(dataset), unique = TRUE)
+
+
+
+
 
 # creo la carpeta donde va el experimento
 dir.create("./exp/", showWarnings = FALSE)
