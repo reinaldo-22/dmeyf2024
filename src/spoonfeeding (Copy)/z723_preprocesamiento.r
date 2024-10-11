@@ -25,10 +25,10 @@ options(error = function() {
 #  muy pronto esto se leera desde un archivo formato .yaml
 PARAM <- list()
 
-PARAM$experimento <- "PP7230_1meses_1_std"
+PARAM$experimento <- "PP7230"
 
 PARAM$input$dataset <- "./datasets/competencia_01.csv"
-PARAM$input$dataset <- "./datasets/df_train_rank.parquet"
+
 PARAM$semilla_azar <- 102191 # Aqui poner su  primer  semilla
 
 
@@ -37,16 +37,16 @@ PARAM$clase_minoritaria <- c("BAJA+1","BAJA+2")
 
 # los meses en los que vamos a entrenar
 #  la magia estara en experimentar exhaustivamente
-PARAM$trainingstrategy$testing <- c(202105)
+PARAM$trainingstrategy$testing <- c(202104)
 PARAM$trainingstrategy$validation <- c(202103)
-PARAM$trainingstrategy$training <- c(202103)
+PARAM$trainingstrategy$training <- c(202102)
 
 
-PARAM$trainingstrategy$final_train <- c( 202104)
+PARAM$trainingstrategy$final_train <- c(202102, 202103, 202104)
 PARAM$trainingstrategy$future <- c(202106)
 
 # un undersampling de 0.1  toma solo el 10% de los CONTINUA
-PARAM$trainingstrategy$training_undersampling <- 1
+PARAM$trainingstrategy$training_undersampling <- 1.0
 
 # esta aberracion fue creada a pedido de Joaquin Tschopp
 #  Publicamente Gustavo Denicolay NO se hace cargo de lo que suceda
@@ -260,21 +260,10 @@ tb_indices$foto_mes <- vfoto_mes
 
 tb_indices
 
-setwd("~/buckets/b2/") # Establezco el Working Directory
+setwd("~/buckets/b1/") # Establezco el Working Directory
 
 # cargo el dataset donde voy a entrenar el modelo
-#dataset <- fread(PARAM$input$dataset)
-library(arrow)
-dataset <- open_dataset(PARAM$input$dataset)
-# Convert to data.table
-dataset <- as.data.table(dataset)
-clean_colnames <- function(names) {
-  names <- gsub("[^a-zA-Z0-9_]", "", names)  # Remove special characters
-  return(names)
-}
-
-# Clean the column names of the dataset
-setnames(dataset, clean_colnames(names(dataset)))
+dataset <- fread(PARAM$input$dataset)
 
 
 

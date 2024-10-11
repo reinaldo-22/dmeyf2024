@@ -1,0 +1,36 @@
+Rscript 723_preprocesamiento_3meses_05.r 
+Rscript 723_preprocesamiento_3meses_1.r
+Rscript 723_preprocesamiento_1meses_1.r 
+
+Rscript 723_preprocesamiento_catedra.r
+
+
+#Error in eval(jsub, SDenv, parent.frame()) : object 'mpayroll' not found
+Calls: [ -> [.data.table -> eval -> eval
+
+Rscript 723_preprocesamiento_3meses_std_02.r
+Rscript 723_preprocesamiento_3meses_std_05.r
+Rscript 723_preprocesamiento_3meses_std_1.r
+Rscript 723_preprocesamiento_1meses_std_1.r
+
+Rscript 723_preprocesamiento_3meses_std_02_parq.r
+Rscript 723_preprocesamiento_3meses_std_05_parq.r
+Rscript 723_preprocesamiento_3meses_std_1_parq.r
+Rscript 723_preprocesamiento_1meses_std_1_parq.r
+
+Rscript z744_catedra.r
+
+
+Rscript 744_BO_PP7230_1meses_1.r  
+Rscript 744_BO_PP7230_3meses_05.r 
+Rscript 744_BO_PP7230_3meses_1.r   
+Rscript 744_BO_PP7230_1meses_1_std.r
+Rscript 744_PP7230_3meses_02_std.r
+Rscript 744_PP7230_3meses_05_std.r
+Rscript 744_PP7230_3meses_1_std.r
+Rscript 
+Rscript 
+Rscript 
+Rscript 
+Rscript 
+

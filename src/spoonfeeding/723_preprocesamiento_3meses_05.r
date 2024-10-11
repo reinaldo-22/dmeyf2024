@@ -39,10 +39,10 @@ PARAM$clase_minoritaria <- c("BAJA+1","BAJA+2")
 #  la magia estara en experimentar exhaustivamente
 PARAM$trainingstrategy$testing <- c(202105)
 PARAM$trainingstrategy$validation <- c(202103)
-PARAM$trainingstrategy$training <- c(202102, 202103, 202104)
+PARAM$trainingstrategy$training <- c(202101, 202102, 202103)
 
 
-PARAM$trainingstrategy$final_train <- c( 202103, 202104,202105)
+PARAM$trainingstrategy$final_train <- c( 202102, 202103,202104)
 PARAM$trainingstrategy$future <- c(202106)
 
 # un undersampling de 0.1  toma solo el 10% de los CONTINUA
