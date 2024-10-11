@@ -273,6 +273,9 @@ clean_colnames <- function(names) {
   return(names)
 }
 
+# Clean the column names of the dataset
+setnames(dataset, clean_colnames(names(dataset)))
+
 
 
 # creo la carpeta donde va el experimento
