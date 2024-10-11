@@ -18,10 +18,10 @@ Rscript 723_preprocesamiento_1meses_std_1_parq.r
 Rscript 744_BO_PP7230_1meses_1.r  
 Rscript 744_BO_PP7230_3meses_05.r 
 Rscript 744_BO_PP7230_3meses_1.r   
-Rscript 
-Rscript 
-Rscript 
-Rscript 
+Rscript 744_BO_PP7230_1meses_1_std.r
+Rscript 744_PP7230_3meses_02_std.r
+Rscript 744_PP7230_3meses_05_std.r
+Rscript 744_PP7230_3meses_1_std.r
 Rscript 
 Rscript 
 Rscript 
