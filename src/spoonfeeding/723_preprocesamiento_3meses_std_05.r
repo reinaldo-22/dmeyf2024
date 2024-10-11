@@ -25,14 +25,14 @@ options(error = function() {
 #  muy pronto esto se leera desde un archivo formato .yaml
 PARAM <- list()
 
-PARAM$experimento <- "PP7230_3meses_05"
+PARAM$experimento <- "PP7230_3meses_05_std"
 
 PARAM$input$dataset <- "./datasets/competencia_01.csv"
 
 PARAM$semilla_azar <- 102191 # Aqui poner su  primer  semilla
 
 
-PARAM$driftingcorreccion <- "ninguno"
+PARAM$driftingcorreccion <- "estandarizar"
 PARAM$clase_minoritaria <- c("BAJA+1","BAJA+2")
 
 # los meses en los que vamos a entrenar

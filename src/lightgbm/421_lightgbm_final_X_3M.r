@@ -33,7 +33,7 @@ PARAM$finalmodel$max_bin <- 31
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Aqui empieza el programa
-setwd("~/buckets/b1")
+setwd("~/buckets/b2")
 
 
 # cargo el dataset donde voy a entrenar

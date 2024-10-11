@@ -1,0 +1,9 @@
+Rscript 723_preprocesamiento_3meses_05.r 
+Rscript 723_preprocesamiento_3meses_1.r 
+Rscript 723_preprocesamiento_3meses_std_02r
+Rscript 723_preprocesamiento_3meses_std_05.r
+Rscript 723_preprocesamiento_3meses_std_1.r
+Rscript
+Rscript
+Rscript
+Rscript
