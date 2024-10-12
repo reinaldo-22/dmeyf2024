@@ -43,12 +43,15 @@ Rscript 723_preprocesamiento_catedra_final04_1.r
 Rscript 
 
 
+                            
+          
+
 
 Rscript z744_catedra_PP7230_abr_safe05.r
-Rscript 
-Rscript 
-Rscript 
-Rscript 
+Rscript z744_catedra_PP7230_safe1.r
+Rscript z744_catedra_PP7230_abr_safe025_cols_optuna.r 
+Rscript z744_catedra_PP7230_abr_safe025.r    
+Rscript z744_catedra.r     
 
 Rscript 
 Rscript 
