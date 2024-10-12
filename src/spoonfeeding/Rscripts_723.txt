@@ -28,6 +28,28 @@ Rscript 744_BO_PP7230_1meses_1_std.r
 Rscript 744_PP7230_3meses_02_std.r
 Rscript 744_PP7230_3meses_05_std.r
 Rscript 744_PP7230_3meses_1_std.r
+
+############################################
+nuevos
+
+
+
+
+
+Rscript 723_preprocesamiento_catedra_final04_025.r
+Rscript 723_preprocesamiento_catedra_final04_025_cols_optuna.r
+Rscript 723_preprocesamiento_catedra_final04_05.r
+Rscript 723_preprocesamiento_catedra_final04_1.r
+Rscript 
+
+
+
+Rscript z744_catedra_PP7230_abr_safe05.r
+Rscript 
+Rscript 
+Rscript 
+Rscript 
+
 Rscript 
 Rscript 
 Rscript 
