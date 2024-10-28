@@ -510,7 +510,7 @@ params = {
 }
 
 ds()
-
+# !pip install polars
 ganancia_acierto = 273000
 costo_estimulo = 7000
 
@@ -524,14 +524,16 @@ path_set_con_features_eng = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82
 
 path_set_crudo = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02_crudo.csv"
 path_set_con_ternaria = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.csv"
-path_set_con_features_eng =  "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.joblib"
+path_set_con_features_eng =  "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.parquet"
+path_datos_accesorios=  "/home/a_reinaldomedina/buckets/b2/datasets/datos_accesorios.joblib"
 
 if not os.path.exists(path_set_con_features_eng):
     original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins)
-    joblib.dump([ original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado],  path_set_con_features_eng)
+    joblib.dump([ original_columns,  top_15_feature_names , least_15_features, least_ampliado],  path_datos_accesorios)
+    data_x.write_parquet( path_set_con_features_eng )
 else:
     original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado= joblib.load( path_set_con_features_eng)
-
+    data_x = pl.read_parquet(path_set_con_features_eng)
 
 #data_x= data
 leaks=[]
