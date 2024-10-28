@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 #import seaborn as sns
-
+#pip install polars
 #from umap import UMAP
 import matplotlib.pyplot as plt
 #from sklearn.cluster import DBSCAN
@@ -578,7 +578,7 @@ def objective(trial):
     params['num_iterations'] = trial.suggest_int("num_iterations", 50, 2500)  # Number of boosting iterations    
     params['bagging_fraction'] = trial.suggest_float('bagging_fraction', 0.1, 1.0)   
    
-    fraction = 0.03# trial.suggest_float('fraction', 0.01, 1)             
+    fraction = 0.15# trial.suggest_float('fraction', 0.01, 1)             
 
     woriginal_columns = list( set(original_columns) -{'clase_ternaria'})    
     trial_number= trial.number
