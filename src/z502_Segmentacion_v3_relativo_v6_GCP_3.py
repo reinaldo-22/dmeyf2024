@@ -348,6 +348,10 @@ def create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_trai
     data = data.drop('indicex')
     data.columns = [col.replace(r'[^a-zA-Z0-9_]', '_') for col in data.columns]
     data = data.with_columns(  pl.col('Master_Finiciomora').cast(pl.Float64)  )
+    data = data.with_columns(  pl.col('tmobile_app').cast(pl.Float32)  )
+    data = data.with_columns(  pl.col('cmobile_app_trx').cast(pl.Float32)  )
+
+   
     original_columns= data.columns
     # data = data.iloc[:500000,:]
     # data= data.slice(0, 100000)    
