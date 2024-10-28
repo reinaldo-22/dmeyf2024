@@ -358,13 +358,13 @@ def create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_trai
     
     top_15_feature_names , least_15_features, least_ampliado=   get_top_and_least_important( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     data= add_features_manual( data)
-    #data = div_sum_top_features_polars(data, top_15_feature_names)
+    data = div_sum_top_features_polars(data, top_15_feature_names)
     print_nan_columns(data, 0.75, original_columns)
     data= add_moth_encode( data)
     print_nan_columns(data, 0.75, original_columns)
     data= bins_least_importatn( data,least_15_features, N_bins ) 
     print_nan_columns(data, 0.75, original_columns)
-    #data= standardize_columns(data) 
+    data= standardize_columns(data) 
     print_nan_columns(data, 0.75, original_columns)
     data= convert_to_int_float32_polars(data)
     #data = drop_columns_nan_zero(data, 0.75, original_columns)
@@ -525,12 +525,22 @@ path_set_con_features_eng = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82
 path_set_crudo = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02_crudo.csv"
 path_set_con_ternaria = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.csv"
 path_set_con_features_eng =  "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.parquet"
+path_set_con_features_eng =  "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.csv.gz"
 path_datos_accesorios=  "/home/a_reinaldomedina/buckets/b2/datasets/datos_accesorios.joblib"
+
+path_set_con_features_eng =  "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.parquet.gz"
 
 if not os.path.exists(path_set_con_features_eng):
     original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins)
+    data_x.write_parquet(path_set_con_features_eng, compression='gzip') 
+    
+    
     joblib.dump([ original_columns,  top_15_feature_names , least_15_features, least_ampliado],  path_datos_accesorios)
+    joblib.dump([ original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado],  path_datos_accesorios)
     data_x.write_parquet( path_set_con_features_eng )
+    data_x.write_csv(path_set_con_features_eng, compression='gzip')
+    joblib.dump([original_columns, data_x, top_15_feature_names, least_15_features, least_ampliado], 
+            path_set_con_features_eng, compress=('zlib', 3))
 else:
     original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado= joblib.load( path_set_con_features_eng)
     data_x = pl.read_parquet(path_set_con_features_eng)
