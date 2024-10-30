@@ -54,7 +54,7 @@ class MockTrial:
 
 
 
-def add_lags_diff(data ):
+def add_lags_diff(data, lag_flag, delta_lag_flag ):
     campitos = ["numero_de_cliente", "foto_mes", "clase_ternaria"]
     numeric_cols_lagueables = [
         col for col in data.columns if col not in campitos and data.schema[col] in (pl.Int32, pl.Int64, pl.Float32, pl.Float64)
@@ -63,19 +63,22 @@ def add_lags_diff(data ):
     # Sort data by 'numero_de_cliente' and 'foto_mes'
     data = data.sort(["numero_de_cliente", "foto_mes"])
     
-    # Create lag-1 columns
+    
     for col in numeric_cols_lagueables:
         data = data.with_columns(
             pl.col(col).shift(1).over("numero_de_cliente").alias(f"{col}_lag1")
         )
     
-    # Create delta-lag columns
-    for col in numeric_cols_lagueables:
-        data = data.with_columns(
-            (pl.col(col) - pl.col(f"{col}_lag1")).alias(f"{col}_delta1")
-        )
-
+    if delta_lag_flag:
+        for col in numeric_cols_lagueables:
+            data = data.with_columns(
+                (pl.col(col) - pl.col(f"{col}_lag1")).alias(f"{col}_delta1")
+            )
+    if not lag_flag:
+        lag_columns = [f"{col}_lag1" for col in numeric_cols_lagueables]
+        data = data.drop(*lag_columns)
     return data
+
 def standardize_columns(data): 
     numeric_cols = [
         col for col in data.columns
@@ -339,7 +342,7 @@ def crete_ternaria( path_set_crudo, path_set_con_ternaria):
 
 
 
-def create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins):
+def create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins, lag_flag, delta_lag_flag):
     if not os.path.exists(path_set_con_ternaria):
         crete_ternaria( path_set_crudo, path_set_con_ternaria)     
         
@@ -369,7 +372,8 @@ def create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_trai
     data= convert_to_int_float32_polars(data)
     #data = drop_columns_nan_zero(data, 0.75, original_columns)
     
-    data= add_lags_diff(data ) 
+    #data= add_lags_diff(data ) 
+    data= add_lags_diff(data, lag_flag, delta_lag_flag )
     return original_columns, data,  top_15_feature_names , least_15_features, least_ampliado
 
 
@@ -541,8 +545,8 @@ else:
     original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado= joblib.load( path_set_con_features_eng)
     data_x = pl.read_parquet(path_set_con_features_eng)
 """
-
-original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins)
+lag_flag, delta_lag_flag = False, True
+original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 #data_x= data
 leaks=[]
 for col in data_x.columns:
@@ -562,8 +566,8 @@ data_x = data_x.with_columns(
 
 penalty=0
 exp_folder = '/home/a_reinaldomedina/buckets/b2/exp/Python_optuna1/'
-exp_folder = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DMEF/exp/Python_optuna1/'
-exp_folder = "~/buckets/b2//exp/comp2/"
+#exp_folder = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DMEF/exp/Python_optuna1/'
+#exp_folder = "~/buckets/b2/exp/comp2/"
 nombre_exp_study = 'comp2_study2.joblib'
 random_state=42
 max_semillas= 1
@@ -588,7 +592,7 @@ def objective(trial):
     params['num_iterations'] = trial.suggest_int("num_iterations", 50, 2500)  # Number of boosting iterations    
     params['bagging_fraction'] = trial.suggest_float('bagging_fraction', 0.1, 1.0)   
    
-    fraction = 0.15# trial.suggest_float('fraction', 0.01, 1)             
+    fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
 
     woriginal_columns = list( set(original_columns) -{'clase_ternaria'})    
     trial_number= trial.number
@@ -710,9 +714,9 @@ else:
 for i in range(0, 3000):
     #study.optimize(objective, n_trials=1)  # You can specify the number of trials
     study.optimize(objective, n_trials=1, n_jobs=-1)
-    joblib.dump( study, exp_folder+ nombre_exp_study)
-
-
+    joblib.dump( study, exp_folder+ nombre_exp_study)     
+    
+    
 ds()
 
 #study= joblib.load( '/home/a_reinaldomedina/Documents/comp1_study2_rank.joblib')
