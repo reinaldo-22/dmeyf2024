@@ -596,7 +596,7 @@ def  optimize_and_predict(X_train, X_train_final, X_future, y_train,y_train_fina
     # Get best parameters and train final model
     best_params = study.best_params
     best_value = study.best_value
-    best_params.update({'max_iter': 100, 'tol': np.mean(y_train)/100})
+    best_params.update({'max_iter': 50, 'tol': np.mean(y_train)/100})
     
     final_model = ElasticNet(**best_params)
     final_model.fit(X_train_final.fillna(X_train_final.mean().fillna(0)), y_train_final)
@@ -671,7 +671,7 @@ def forecast_numeric(features_above_canritos, data, features, wres,  subsample_r
     for col in features_above_canritos:
         print(f"Optimizing for column: {col}")
         X_train, X_final_train, X_future, y_train,y_final_train = get_data(col, df_train, df_final_train, df_y_train, df_y_final_train,df_X_future)
-        future_pred, best_params,best_value = optimize_and_predict(X_train, X_final_train, X_future, y_train,y_final_train,   100)
+        future_pred, best_params,best_value = optimize_and_predict(X_train, X_final_train, X_future, y_train,y_final_train,   30)
         
         #results['train_predictions'][col] = train_pred
         #results['test_predictions'][col] = test_pred
@@ -1130,7 +1130,7 @@ def create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_
     data = data.with_columns(  pl.col('tmobile_app').cast(pl.Float32)  )
     data = data.with_columns(  pl.col('cmobile_app_trx').cast(pl.Float32)  )
     # redusco dataset eliminando registros muy viejos
-    data = data.filter(pl.col('foto_mes') > last_date_to_consider)
+    data = data.filter(pl.col('foto_mes') > 202100)
    
     original_columns= data.columns
     # data = data.iloc[:500000,:]
@@ -1138,7 +1138,7 @@ def create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_
     
     #top_15_feature_names , least_15_features, least_ampliado=   get_top_and_least_important( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     features_above_canritos, features_below_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
-    
+    data= convert_to_int_float32_polars(data)
     data = add_forecast_elasticnet( data,features_above_canritos[:7])
     features_above_canritos5, features_below_canritos5 = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     
