@@ -596,7 +596,7 @@ def  optimize_and_predict(X_train, X_train_final, X_future, y_train,y_train_fina
     # Get best parameters and train final model
     best_params = study.best_params
     best_value = study.best_value
-    best_params.update({'max_iter': 600, 'tol': 1e-1})
+    best_params.update({'max_iter': 100, 'tol': np.mean(y_train)/100})
     
     final_model = ElasticNet(**best_params)
     final_model.fit(X_train_final.fillna(X_train_final.mean().fillna(0)), y_train_final)
@@ -694,7 +694,7 @@ def forecast_numeric(features_above_canritos, data, features, wres,  subsample_r
     return df_future_updated 
 
 def add_forecast_elasticnet( data,features_above_canritos):
-    subsample_ratio=0.5
+    subsample_ratio=0.02
     variance_threshold= 1E2
     all_times= data['foto_mes'].unique().to_list()
     all_times. reverse()
@@ -732,7 +732,7 @@ def add_forecast_elasticnet( data,features_above_canritos):
     for mes_future in res.keys():    
         wres=  res[mes_future]
        
-        df_future_updated ,high_var= forecast_numeric(features_above_canritos, data, features_above_canritos, wres,subsample_ratio, variance_threshold)
+        df_future_updated = forecast_numeric(features_above_canritos, data, features_above_canritos, wres,subsample_ratio, variance_threshold)
         data_fut2.append( df_future_updated)
     
     data_fut2 = pl.concat( data_fut2, how='vertical')
@@ -1321,7 +1321,7 @@ path_set_con_ternaria = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DME
 path_set_crudo = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02_crudo.csv"
 path_set_con_ternaria = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.csv"
 
-
+ds()
 """
 if not os.path.exists(path_set_con_features_eng):
     original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins)
