@@ -1165,9 +1165,9 @@ def create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_
     
     data= convert_to_int_float32_polars(data)
     features_above_canritos2, features_below_canritos2 = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
-    data= data[features_above_canritos]
+    data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_above_canritos]
     #data = drop_columns_nan_zero(data, 0.75, original_columns)
-    
+    data_x=data
     return original_columns, data,  features_above_canritos, features_below_canritos
 
 
@@ -1348,6 +1348,7 @@ lag_flag, delta_lag_flag = False, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 original_columns, data_x,  features_above_canritos, features_below_canritos =create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 #data_x= data
+del(data)
 leaks=[]
 for col in data_x.columns:
     if 'clase_peso'in col.lower():
@@ -1368,18 +1369,21 @@ penalty=0
 exp_folder = '/home/a_reinaldomedina/buckets/b2/exp/Python_optuna1/'
 #exp_folder = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DMEF/exp/Python_optuna1/'
 #exp_folder = "~/buckets/b2/exp/comp2/"
-nombre_exp_study = 'comp2_study2.joblib'
+nombre_exp_study = 'comp2_study_4_1.joblib'
 random_state=42
 max_semillas= 4
 trains= [202004,202005,202006,202007,202008,202009,202010,202011,202012,202101,202102, 202103, 202104]
 final_train = [202006,202007,202008,202009,202010,202011,202012,202101,202102, 202103, 202104, 202105, 202106]
 
 
+#trains= [ 202103, 202104]
+#final_train = [202006,202007,202008,202009,202010,202011,202012,202101,202102, 202103, 202104, 202105, 202106]
 
 
 
+top_15_feature_names= features_above_canritos[:50]
 def objective(trial):
-    global best_result, best_predictions, penalty, top_15_feature_names, data,random_state, trains,test_date
+    global best_result, best_predictions, penalty, top_15_feature_names, data,random_state, trains,mes_test
     params['learning_rate'] = trial.suggest_float("learning_rate", 0.001, 0.3)   
     params['feature_fraction'] = trial.suggest_float("feature_fraction", 0.01, 1.0)
     params['num_leaves'] = trial.suggest_int("num_leaves", 31, 256)  # Example of leaf size
@@ -1426,22 +1430,22 @@ def objective(trial):
     random_numbers = np.random.randint(low=-32768, high=32767, size=max_semillas, dtype=np.int16).tolist()
     res= []
     for rnd in random_numbers:
-        w_res = exectue_model(final_selection,trains, test_date, data_x, fraction, params,trial_number,feature_selection,random_state)
+        w_res = exectue_model(final_selection,trains, mes_test, data_x, fraction, params,trial_number,feature_selection,random_state)
         res.append( w_res)
     res =np.mean( res)
     return res- len(feature_selection )*penalty
 
 
 
-#final_selection,trains, test_date, data_x, fraction, params,trial_number,feature_selection = objective_params(mock_trial)    
-def exectue_model(final_selection,trains, test_date, data_x, fraction, params, trial_number, feature_selection, random_state):
+#final_selection,trains, mes_test, data_x, fraction, params,trial_number,feature_selection = objective_params(mock_trial)    
+def exectue_model(final_selection,trains, mes_test, data_x, fraction, params, trial_number, feature_selection, random_state):
     
     global best_result, best_predictions, penalty,exp_folder, mode_recalc
     data_x_selected= data_x[final_selection]
     #df_train_3 = data_x_selected[data_x_selected['foto_mes'].isin(trains)]  
     df_train_3 = data_x_selected.filter(pl.col('foto_mes').is_in(trains))
-    #df_test = data_x_selected[data_x_selected['foto_mes'] == test_date]    
-    df_test = data_x_selected.filter(pl.col('foto_mes') == test_date)
+    #df_test = data_x_selected[data_x_selected['foto_mes'] == mes_test]    
+    df_test = data_x_selected.filter(pl.col('foto_mes') == mes_test)
    
                               
     """
