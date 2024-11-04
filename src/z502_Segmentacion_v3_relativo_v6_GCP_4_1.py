@@ -1114,7 +1114,7 @@ def crete_ternaria( path_set_crudo, path_set_con_ternaria):
 
 
 
-def create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins, lag_flag, delta_lag_flag):
+def create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins, lag_flag, delta_lag_flag):
     if not os.path.exists(path_set_con_ternaria):
         crete_ternaria( path_set_crudo, path_set_con_ternaria)     
         
@@ -1125,7 +1125,8 @@ def create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_trai
     data = data.with_columns(  pl.col('Master_Finiciomora').cast(pl.Float64)  )
     data = data.with_columns(  pl.col('tmobile_app').cast(pl.Float32)  )
     data = data.with_columns(  pl.col('cmobile_app_trx').cast(pl.Float32)  )
-
+    # redusco dataset eliminando registros muy viejos
+    data = data.filter(pl.col('foto_mes') > last_date_to_consider)
    
     original_columns= data.columns
     # data = data.iloc[:500000,:]
@@ -1303,10 +1304,11 @@ ganancia_acierto = 273000
 costo_estimulo = 7000
 
 N_top, N_least,  mes_train, mes_test, test_future = 15, 20, 202104, 202106, 202108
+last_date_to_consider = 202000
 N_least_ampliado = 30
 N_bins=5
 path_set_con_ternaria = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DMEF/datasets/competencia_02.csv'
-ds()
+
 # path_set_crudo = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DMEF/datasets/competencia_01_crudo.csv'
 # path_set_con_ternaria = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DMEF/datasets/competencia_02.csv'
 #path_set_con_features_eng = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DMEF/datasets/competencia_02_features_eng.joblib'
@@ -1314,6 +1316,7 @@ ds()
 
 path_set_crudo = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02_crudo.csv"
 path_set_con_ternaria = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.csv"
+
 
 """
 if not os.path.exists(path_set_con_features_eng):
@@ -1333,7 +1336,7 @@ else:
 """
 
 lag_flag, delta_lag_flag = False, True
-original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 #data_x= data
 leaks=[]
 for col in data_x.columns:
