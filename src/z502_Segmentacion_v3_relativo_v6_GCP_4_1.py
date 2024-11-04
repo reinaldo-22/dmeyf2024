@@ -582,13 +582,13 @@ def objective(trial, X_train, y_train, X_train_final, y_train_final):
     return mean_squared_error(y_pred, y_train_final)
    
     
-def  optimize_and_predict(X_train, X_train_final, X_future, y_train,y_train_final, target_col , n_trials):
+def  optimize_and_predict(X_train, X_train_final, X_future, y_train,y_train_final,  n_trials):
     """
     Optimize model for a single target column and return predictions
     """
     study = optuna.create_study(direction='minimize')
     study.optimize(
-        lambda trial: objective(trial, X_train, y_train[target_col], X_train_final, y_train_final[target_col]  ), 
+        lambda trial: objective(trial, X_train, y_train, X_train_final, y_train_final  ), 
         n_trials=n_trials,
         n_jobs=-1
     )
@@ -599,7 +599,7 @@ def  optimize_and_predict(X_train, X_train_final, X_future, y_train,y_train_fina
     best_params.update({'max_iter': 600, 'tol': 1e-1})
     
     final_model = ElasticNet(**best_params)
-    final_model.fit(X_train_final.fillna(X_train_final.mean().fillna(0)), y_train_final[target_col])
+    final_model.fit(X_train_final.fillna(X_train_final.mean().fillna(0)), y_train_final)
     
     # Make predictions
     #train_pred = final_model.predict(X_train.fillna(X_train.mean()))
@@ -607,9 +607,9 @@ def  optimize_and_predict(X_train, X_train_final, X_future, y_train,y_train_fina
     future_pred = final_model.predict(X_future.fillna(X_future.mean().fillna(0)))
     
     #return train_pred, test_pred,future_pred, best_params
-    return future_pred, best_params,best_value**.5/np.mean(y_train_final[target_col])
+    return future_pred, best_params,best_value**.5/np.mean(y_train_final)
 
-def forecast_numeric(high_var, data, features, wres,  subsample_ratio=0.02, variance_threshold=1E2):
+def forecast_numeric(features_above_canritos, data, features, wres,  subsample_ratio=0.02, variance_threshold=1E2):
   
     #df_train = data.filter(pl.col('foto_mes').is_in(trains))
     #df_test = data.filter(pl.col('foto_mes') == mes_test)
@@ -627,35 +627,37 @@ def forecast_numeric(high_var, data, features, wres,  subsample_ratio=0.02, vari
     df_train = subsample_data_time_polars(df_train, subsample_ratio, 'CONTINUA', 'clase_ternaria', 4)
     df_final_train = subsample_data_time_polars(df_final_train, subsample_ratio, 'CONTINUA', 'clase_ternaria', 4)
         
+    def get_data(col, df_train, df_final_train, df_y_train, df_y_final_train,df_X_future):
+        #feature_cols_X =  ['month', 'month_sin', 'month_cos']
+        X_train = df_train.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente'] ).to_pandas()
+        X_final_train = df_final_train.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
+        y_train = df_y_train.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
+        y_final_train = df_y_final_train.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
+        X_future = df_X_future.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
     
-    #feature_cols_X =  ['month', 'month_sin', 'month_cos']
-    X_train = df_train.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente'] ).to_pandas()
-    X_final_train = df_final_train.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
-    y_train = df_y_train.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
-    y_final_train = df_y_final_train.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
-    X_future = df_X_future.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
     
+        y_train = y_train[col].dropna()
+        y_final_train = y_final_train[col].dropna()
+     
+        common_index = y_train.index.intersection(X_train.index)    
+        X_train = X_train.loc[common_index]
+        y_train = y_train.loc[common_index]
+        
+        common_index = y_final_train.index.intersection(X_final_train.index)    
+        X_final_train = X_final_train.loc[common_index]   
+        y_final_train = y_final_train.loc[common_index]   
+      
+        X_final_train = X_final_train.fillna(X_final_train.mean().fillna(0) ) 
+        X_train = X_train.fillna(X_train.mean().fillna(0) )
+        X_future = X_future.fillna(X_future.mean().fillna(0) )
+        """
+        if type(high_var) == type(None):
+            variances = y_train.var()
+            high_var = variances[variances > variance_threshold].index
+        
+        # Store results"""
+        return X_train, X_final_train, X_future, y_train,y_final_train
     
-    y_train = y_train.dropna()
-    y_final_train = y_final_train.dropna()
- 
-    common_index = y_train.index.intersection(X_train.index)    
-    X_train = X_train.loc[common_index]
-    y_train = y_train.loc[common_index]
-    
-    common_index = y_final_train.index.intersection(X_final_train.index)    
-    X_final_train = X_final_train.loc[common_index]   
-    y_final_train = y_final_train.loc[common_index]   
-  
-    X_final_train = X_final_train.fillna(X_final_train.mean().fillna(0) ) 
-    X_train = X_train.fillna(X_train.mean().fillna(0) )
-    X_future = X_future.fillna(X_future.mean().fillna(0) )
-                  
-    if type(high_var) == type(None):
-        variances = y_train.var()
-        high_var = variances[variances > variance_threshold].index
-    
-    # Store results
     results = {
         'train_predictions': {},
         'test_predictions': {},
@@ -663,11 +665,13 @@ def forecast_numeric(high_var, data, features, wres,  subsample_ratio=0.02, vari
         'future_pred': {},
         'best_value': {},
     }
+        
     
     # Optimize and predict for each target column
-    for col in high_var:
+    for col in features_above_canritos:
         print(f"Optimizing for column: {col}")
-        future_pred, best_params,best_value = optimize_and_predict(X_train, X_final_train, X_future, y_train,y_final_train,  col , 2)
+        X_train, X_final_train, X_future, y_train,y_final_train = get_data(col, df_train, df_final_train, df_y_train, df_y_final_train,df_X_future)
+        future_pred, best_params,best_value = optimize_and_predict(X_train, X_final_train, X_future, y_train,y_final_train,   100)
         
         #results['train_predictions'][col] = train_pred
         #results['test_predictions'][col] = test_pred
@@ -687,10 +691,10 @@ def forecast_numeric(high_var, data, features, wres,  subsample_ratio=0.02, vari
 
     df_future_updated = pl.concat([df_X_future, future_predictions_pl], how='horizontal')   
  
-    return df_future_updated ,high_var
+    return df_future_updated 
 
 def add_forecast_elasticnet( data,features_above_canritos):
-    subsample_ratio=0.02
+    subsample_ratio=0.5
     variance_threshold= 1E2
     all_times= data['foto_mes'].unique().to_list()
     all_times. reverse()
@@ -724,11 +728,11 @@ def add_forecast_elasticnet( data,features_above_canritos):
         print (res[w_fut_test])
         
     data_fut2 =[]    
-    high_var=None
+    #high_var=None
     for mes_future in res.keys():    
         wres=  res[mes_future]
        
-        df_future_updated ,high_var= forecast_numeric(high_var, data, features_above_canritos, wres,subsample_ratio, variance_threshold)
+        df_future_updated ,high_var= forecast_numeric(features_above_canritos, data, features_above_canritos, wres,subsample_ratio, variance_threshold)
         data_fut2.append( df_future_updated)
     
     data_fut2 = pl.concat( data_fut2, how='vertical')
@@ -1135,7 +1139,7 @@ def create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_
     #top_15_feature_names , least_15_features, least_ampliado=   get_top_and_least_important( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     features_above_canritos, features_below_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     
-    data = add_forecast_elasticnet( data,features_above_canritos)
+    data = add_forecast_elasticnet( data,features_above_canritos[:7])
     features_above_canritos5, features_below_canritos5 = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     
     lag_flag, delta_lag_flag = True, True
