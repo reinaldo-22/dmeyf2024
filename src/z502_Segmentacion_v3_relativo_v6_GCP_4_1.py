@@ -298,7 +298,7 @@ def enhanced_feature_binning(data, features_list, N_bins=5): # agrupamiento por 
             group_binned_features.append(binned_feature_name)
             data = data.with_columns(bin_expr.alias(binned_feature_name))
         
-        # Create group aggregate feature
+        # _d group aggregate feature
         if group_binned_features:
             group_feature_name = f"{group_name}_agg"
             data = data.with_columns(
@@ -788,8 +788,8 @@ def get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampli
     'force_row_wise': True,
     'learning_rate': 0.065,
     'feature_fraction': 1.0,
-    'min_data_in_leaf': 260,
-    'num_leaves': 60,
+    'min_data_in_leaf': 50,
+    'num_leaves': 120,
     'num_threads': -1
     }    
     
@@ -1136,39 +1136,39 @@ def create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_
     original_columns= data.columns
     # data = data.iloc[:500000,:]
     # data= data.slice(0, 100000)    
-    all_times[:-stride-window]
-    Out[25]: [202108, 202107, 202106, 202105]
-    mes_train, mes_test  =   202105, 202106
+    #all_times[:-stride-window]
+    #Out[25]: [202108, 202107, 202106, 202105]
+    #mes_train, mes_test  =   202105, 202106
     #top_15_feature_names , least_15_features, least_ampliado=   get_top_and_least_important( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
-    features_above_canritos, features_below_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     data= convert_to_int_float32_polars(data)
+    #features_above_canritos, features_below_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
+    
     col_dinero= ['mcaja_ahorro' , 'mcuenta_corriente', 'mcuentas_saldo', 'ctrx_quarter', 'mrentabilidad']
-    data = add_forecast_elasticnet( data, col_dinero )
+    #data = add_forecast_elasticnet( data, col_dinero )
+    data= standardize_columns(data) 
     #data = add_forecast_elasticnet( data,features_above_canritos[:7])
-    features_above_canritos5, features_below_canritos5 = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
-    
-    lag_flag, delta_lag_flag = True, True
-    #data= add_lags_diff(data, lag_flag, delta_lag_flag )
     data = time_features(data)
-    #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
-    data = div_sum_top_features_polars(data, features_above_canritos+features_below_canritos[:10])
+    #lag_flag, delta_lag_flag = False, True
+    #data= add_lags_diff(data, lag_flag, delta_lag_flag )
+    features_above_canritos, features_below_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     
-    print_nan_columns(data, 0.75, original_columns)
+    
+    #data = time_features(data)
+    #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
+    data = div_sum_top_features_polars(data, features_above_canritos[:50])
+    
+    #print_nan_columns(data, 0.75, original_columns)
     data= add_moth_encode( data)
     print_nan_columns(data, 0.75, original_columns)
     #data= bins_least_importatn( data,features_below_canritos, N_bins ) 
-    data = enhanced_feature_binning(data, features_below_canritos3, N_bins=5)
-    data, new_features = data
+    data, new_features = enhanced_feature_binning(data, features_below_canritos, N_bins=5)
     
-    print_nan_columns(data, 0.75, original_columns)
-    data= standardize_columns(data) 
-    print_nan_columns(data, 0.75, original_columns)
     data= convert_to_int_float32_polars(data)
+    features_above_canritos2, features_below_canritos2 = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
+    data= data[features_above_canritos]
     #data = drop_columns_nan_zero(data, 0.75, original_columns)
     
-    #data= add_lags_diff(data ) 
-    data= add_lags_diff(data, lag_flag, delta_lag_flag )
-    return original_columns, data,  top_15_feature_names , least_15_features, least_ampliado
+    return original_columns, data,  features_above_canritos, features_below_canritos
 
 
 # fin preparacion de datos.
@@ -1345,7 +1345,8 @@ else:
 """
 
 lag_flag, delta_lag_flag = False, True
-original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+#original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+original_columns, data_x,  features_above_canritos, features_below_canritos =create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 #data_x= data
 leaks=[]
 for col in data_x.columns:
