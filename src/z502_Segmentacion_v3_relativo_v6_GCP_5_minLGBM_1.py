@@ -1443,14 +1443,14 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
    # features_above_canritos, features_below_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     data= standardize_columns(data) 
     data= convert_to_int_float32_polars(data)
-    col_dinero= ['mcaja_ahorro' , 'mcuenta_corriente', 'mcuentas_saldo', 'ctrx_quarter', 'mrentabilidad', 'ctrx_quarter_normalizado_std']
-    data = add_forecast_elasticnet( data, col_dinero )
+    col_dinero= ['mcaja_ahorro_std' , 'mcuenta_corriente_std', 'mcuentas_saldo_std', 'ctrx_quarter_std', 'mrentabilidad_std', 'ctrx_quarter_normalizado_std']
+    #data = add_forecast_elasticnet( data, col_dinero )
     
     
-    data.write_parquet(exp_folder+'data_x_w0_elas.parquet' )
+    #data.write_parquet(exp_folder+'data_x_w0_elas.parquet' )
     #data = add_forecast_elasticnet( data,features_above_canritos[:7])
     data = time_features(data)
-    #data.write_parquet(exp_folder+'data_x_w0_time.parquet' )
+    data.write_parquet(exp_folder+'data_x_w0_time.parquet' )
     
     #lag_flag, delta_lag_flag = False, True
     #data= add_lags_diff(data, lag_flag, delta_lag_flag )
@@ -1663,7 +1663,8 @@ else:
 
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
-original_columns,original_columns_inta_mes,  data,  features_finales, feature_importance_df_ranking, feature_importance_df_bool =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+
 joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], '/home/a_reinaldomedina/buckets/b2/exp/Python_optuna1/dataset_202000s_elsatic.joblib')
 data_x.write_parquet(exp_folder+'data_x.parquet' )
 
@@ -1690,12 +1691,13 @@ final_train = [202006,202007,202008,202009,202010,202011,202012,202101,202102, 2
 
 
 #trains= [ 202103, 202104]
-trains= [202009,202010,202011,202012,202101,202102, 202103, 202104]
+trains= [202011,202012,202101,202102, 202103, 202104]
 #final_train = [202006,202007,202008,202009,202010,202011,202012,202101,202102, 202103, 202104, 202105, 202106]
 
 
 
-top_15_feature_names= features_above_canritos[:50]
+#top_15_feature_names= features_finales[:50]
+top_15_feature_names= feature_importance_df_ranking['feature'][:50]
 def objective(trial):
     global best_result, best_predictions, penalty, top_15_feature_names, data,random_state, trains,mes_test
     params['learning_rate'] = trial.suggest_float("learning_rate", 0.001, 0.7)   
@@ -1710,7 +1712,8 @@ def objective(trial):
     #params['lambda_l2'] = trial.suggest_float("lambda_l2", 0.0, 10.0)  # L2 regularization
     params['num_iterations'] = trial.suggest_int("num_iterations", 3, 500)  # Number of boosting iterations    
     params['bagging_fraction'] = trial.suggest_float('bagging_fraction', 0.01, 1.0)   
-    clase_peso_lgbm = trial.suggest_int('bagging_fraction',1, ganancia_acierto+10000)   
+    clase_peso_lgbm = trial.suggest_int('clase_peso_lgbm',1, ganancia_acierto+10000)   
+    cant_semillas_ensamble = trial.suggest_int('cant_semillas_ensamble',100, 2000)   
     fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
 
     woriginal_columns = list( set(original_columns) -{'clase_ternaria'})    
