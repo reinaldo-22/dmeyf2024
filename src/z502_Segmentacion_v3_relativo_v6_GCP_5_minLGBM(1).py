@@ -978,6 +978,7 @@ def get_top_and_least_important_boruta( data, ganancia_acierto,  mes_train, mes_
     df_train_3 = data.filter(pl.col('foto_mes') == mes_train)
     df_train_3= subsample_data_time_polars(df_train_3, 0.1, 'CONTINUA', 'clase_ternaria', random_state)      
     df_train_3 = data.filter(pl.col('foto_mes') == mes_train)
+    df_train_3= subsample_data_time_polars(df_train_3, 0.1, 'CONTINUA', 'clase_ternaria', random_state)      
     df_test = data.filter(pl.col('foto_mes') == mes_test)
     
     y_train = df_train_3['clase_ternaria'].to_pandas().map(lambda x: 0 if x == "CONTINUA" else 1)
@@ -1429,6 +1430,8 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
     data = div_sum_top_features_polars(data, feature_importance_df_ranking['feature'][:50].to_list())
     
+    
+    
     #print_nan_columns(data, 0.75, original_columns)
     data= add_moth_encode( data)
     #print_nan_columns(data, 0.75, original_columns)
@@ -1441,7 +1444,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ feature_importance_df_bool['feature'][:50].to_list()]
     #data = drop_columns_nan_zero(data, 0.75, original_columns)
     #data_x=data
-    return original_columns,original_columns_inta_mes,  data,  features_above_canritos, features_below_canritos
+    return original_columns,original_columns_inta_mes,  data,  features_finales, feature_importance_df_ranking, feature_importance_df_bool
 
 
 # fin preparacion de datos.
