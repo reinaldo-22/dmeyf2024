@@ -1417,10 +1417,11 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data = add_forecast_elasticnet( data, col_dinero )
     
     
-    data_x.write_parquet(exp_folder+'data_x_w0_elas.parquet' )
+    #data.write_parquet(exp_folder+'data_x_w0_elas.parquet' )
     #data = add_forecast_elasticnet( data,features_above_canritos[:7])
     data = time_features(data)
-    data_x.write_parquet(exp_folder+'data_x_w0_time.parquet' )
+    #data.write_parquet(exp_folder+'data_x_w0_time.parquet' )
+    
     #lag_flag, delta_lag_flag = False, True
     #data= add_lags_diff(data, lag_flag, delta_lag_flag )
     #features_above_canritos, features_above_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
@@ -1590,6 +1591,7 @@ costo_estimulo = 7000
 
 N_top, N_least,  mes_train, mes_test, test_future = 15, 20, 202104, 202106, 202108
 last_date_to_consider = 202000
+last_date_to_consider = 202006
 last_date_to_consider = 201911
 N_least_ampliado = 30
 N_bins=5
@@ -1625,7 +1627,7 @@ else:
 ds()
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
-original_columns,original_columns_inta_mes, data_x,  features_above_canritos, features_below_canritos =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+original_columns,original_columns_inta_mes,  data,  features_above_canritos, features_below_canritos=create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 joblib.dump( [ original_columns,original_columns_inta_mes, features_above_canritos, features_below_canritos  ], '/home/a_reinaldomedina/buckets/b2/exp/Python_optuna1/dataset_202000s_elsatic.joblib')
 data_x.write_parquet(exp_folder+'data_x.parquet' )
 
