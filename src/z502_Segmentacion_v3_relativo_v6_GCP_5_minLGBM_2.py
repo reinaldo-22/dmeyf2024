@@ -1428,6 +1428,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data = data.with_columns(  pl.col('cmobile_app_trx').cast(pl.Float32)  )
     # redusco dataset eliminando registros muy viejos
     # data = data.filter(pl.col('foto_mes') > 202100)
+    last_date_to_consider= 201910
     data = data.filter(pl.col('foto_mes') > last_date_to_consider)
    
     original_columns= data.columns
@@ -1676,6 +1677,7 @@ else:
 
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+ds()
 original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 
 joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], '/home/a_reinaldomedina/buckets/b2/exp/Python_optuna1/dataset_202000s_elsatic.joblib')
