@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 #from sklearn.impute import SimpleImputer
 from joblib import Parallel, delayed
 import dask.dataframe as dd
-
+from boruta import BorutaPy
 import time
 
 import pandas as pd
@@ -963,6 +963,46 @@ def add_forecast_elasticnet( data,features_above_canritos):
     data_fut2 = pl.concat( data_fut2, how='vertical')
     return data_fut2
 
+
+
+
+
+
+
+
+def get_top_and_least_important_boruta( data, ganancia_acierto,  mes_train, mes_test  ):
+      
+    
+       
+    data = data.with_columns(pl.col('Master_Finiciomora').cast(pl.Float64))    
+    
+    df_train_3= subsample_data_time_polars(df_train_3, 0.1, 'CONTINUA', 'clase_ternaria', random_state)      
+    df_train_3 = data.filter(pl.col('foto_mes') == mes_train)
+    df_test = data.filter(pl.col('foto_mes') == mes_test)
+    
+    y_train = df_train_3['clase_ternaria'].to_pandas().map(lambda x: 0 if x == "CONTINUA" else 1)
+    y_test = df_test['clase_ternaria'].to_pandas().map(lambda x: 0 if x == "CONTINUA" else 1)
+    
+    X_train = df_train_3.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
+    X_test = df_test.drop(['clase_ternaria', 'foto_mes', 'numero_de_cliente']).to_pandas()
+   
+   
+    rf = RandomForestClassifier(n_jobs=-1, class_weight={0:1, 1:ganancia_acierto}, max_depth=5)
+   
+    # define Boruta feature selection method
+    feat_selector = BorutaPy(rf, n_estimators='auto', verbose=2, random_state=2)
+    
+    # find all relevant features - 5 features should be selected
+    feat_selector.fit(X_train.fillna(0), y_train)   
+    
+ 
+    feature_names = X_train.columns
+    feature_importance_df_ranking = pd.DataFrame({'feature': feature_names, 'importance_split': feat_selector.ranking_}).sort_values(by='importance_split', ascending=True)
+    feature_importance_df_bool = pd.DataFrame({'feature': feature_names, 'importance_split': feat_selector.support_}).sort_values(by='importance_split', ascending=False)
+     
+
+    return feature_importance_df_ranking, feature_importance_df_bool
+    
 def get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  ):
       
     data = data.with_columns(pl.lit(1.0).alias('clase_peso'))
@@ -1345,7 +1385,7 @@ def crete_ternaria( path_set_crudo, path_set_con_ternaria):
 
 
 
-def create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins, lag_flag, delta_lag_flag):
+def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins, lag_flag, delta_lag_flag):
     if not os.path.exists(path_set_con_ternaria):
         crete_ternaria( path_set_crudo, path_set_con_ternaria)     
         
@@ -1382,12 +1422,12 @@ def create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_
     data_x.write_parquet(exp_folder+'data_x_w0_time.parquet' )
     #lag_flag, delta_lag_flag = False, True
     #data= add_lags_diff(data, lag_flag, delta_lag_flag )
-    features_above_canritos, features_above_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
-    
+    #features_above_canritos, features_above_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
+    feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
     
     #data = time_features(data)
     #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
-    data = div_sum_top_features_polars(data, features_above_canritos[:50])
+    data = div_sum_top_features_polars(data, feature_importance_df_ranking['feature'][:50].to_list())
     
     #print_nan_columns(data, 0.75, original_columns)
     data= add_moth_encode( data)
@@ -1404,7 +1444,7 @@ def create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_
 
 
 # fin preparacion de datos.
-
+    
 
 ########################################################
 
@@ -1579,7 +1619,7 @@ else:
 
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
-original_columns,original_columns_inta_mes, data_x,  features_above_canritos, features_below_canritos =create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+original_columns,original_columns_inta_mes, data_x,  features_above_canritos, features_below_canritos =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 joblib.dump( [ original_columns,original_columns_inta_mes, features_above_canritos, features_below_canritos  ], '/home/a_reinaldomedina/buckets/b2/exp/Python_optuna1/dataset_202000s_elsatic.joblib')
 data_x.write_parquet(exp_folder+'data_x.parquet' )
 
@@ -1590,14 +1630,6 @@ for col in data_x.columns:
     if 'clase_peso'in col.lower():
         leaks.append(col)
 
-#data_x['clase_peso'] = 1.0
-data_x = data_x.with_columns( pl.lit(1.0).alias('clase_peso')  )
-data_x = data_x.with_columns(
-    pl.when(pl.col('clase_ternaria') == 'BAJA+2').then(2.00002)
-    .when(pl.col('clase_ternaria') == 'BAJA+1').then(2.00001)
-    .otherwise(pl.col('clase_peso'))  # Keep the original value if no condition matches
-    .alias('clase_peso')
-)
 
 
 
@@ -1634,7 +1666,7 @@ def objective(trial):
     #params['lambda_l2'] = trial.suggest_float("lambda_l2", 0.0, 10.0)  # L2 regularization
     params['num_iterations'] = trial.suggest_int("num_iterations", 3, 500)  # Number of boosting iterations    
     params['bagging_fraction'] = trial.suggest_float('bagging_fraction', 0.01, 1.0)   
-   
+    clase_peso_lgbm = trial.suggest_int('bagging_fraction',1, ganancia_acierto+10000)   
     fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
 
     woriginal_columns = list( set(original_columns) -{'clase_ternaria'})    
@@ -1681,7 +1713,15 @@ def objective(trial):
 
 #final_selection,trains, mes_test, data_x, fraction, params,trial_number,feature_selection = objective_params(mock_trial)    
 def exectue_model(final_selection,trains, mes_test, data_x, fraction, params, trial_number, feature_selection, random_state):
-    
+    #data_x['clase_peso'] = 1.0
+    data_x = data_x.with_columns( pl.lit(1.0).alias('clase_peso')  )
+    data_x = data_x.with_columns(
+        pl.when(pl.col('clase_ternaria') == 'BAJA+2').then(clase_peso_lgbm+0.00002)
+        .when(pl.col('clase_ternaria') == 'BAJA+1').then(clase_peso_lgbm+0.00001)
+        .otherwise(pl.col('clase_peso'))  # Keep the original value if no condition matches
+        .alias('clase_peso')
+    )
+
     global best_result, best_predictions, penalty,exp_folder, mode_recalc
     data_x_selected= data_x[final_selection]
     #df_train_3 = data_x_selected[data_x_selected['foto_mes'].isin(trains)]  
