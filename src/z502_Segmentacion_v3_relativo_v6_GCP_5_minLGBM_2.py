@@ -1452,10 +1452,18 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data = time_features(data)
     data.write_parquet(exp_folder+'data_x_w0_time.parquet' )
     
+    feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
+    features_finales = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==True ]['feature'].to_list()   
+    data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
+
+
+    
     lag_flag, delta_lag_flag = True, True
     data= add_lags_diff(data, lag_flag, delta_lag_flag )
-    #features_above_canritos, features_above_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
+    
     feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
+    features_finales = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==True ]['feature'].to_list()   
+    data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
     
     #data = time_features(data)
     #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
