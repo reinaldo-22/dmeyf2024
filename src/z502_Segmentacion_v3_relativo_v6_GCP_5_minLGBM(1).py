@@ -1556,9 +1556,9 @@ path_set_con_ternaria = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DME
 #path_set_con_features_eng = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DMEF/datasets/competencia_02_features_eng.joblib'
 
 
-path_set_crudo = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02_crudo.csv"
-path_set_con_ternaria = "/home/a_reinaldomedina/buckets/b2/datasets/competencia_02.csv"
-exp_folder = '/home/a_reinaldomedina/buckets/b2/exp/Python_optuna1/'
+path_set_crudo = "/home/medina_robledo/buckets/b1/datasets/competencia_02_crudo.csv"
+path_set_con_ternaria = "/home/medina_robledo/buckets/b1/datasets/competencia_02.csv"
+exp_folder = '/home/medina_robledo/buckets/b1/exp/Python_optuna1/'
 
 """
 if not os.path.exists(path_set_con_features_eng):
