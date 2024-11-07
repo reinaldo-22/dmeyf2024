@@ -1444,22 +1444,22 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data= standardize_columns(data) 
     data= convert_to_int_float32_polars(data)
     col_dinero= ['mcaja_ahorro' , 'mcuenta_corriente', 'mcuentas_saldo', 'ctrx_quarter', 'mrentabilidad', 'ctrx_quarter_normalizado_std']
-    data = add_forecast_elasticnet( data, col_dinero )
+  #  data = add_forecast_elasticnet( data, col_dinero )
     
     
-    data.write_parquet(exp_folder+'data_x_w0_elas.parquet' )
+    #data.write_parquet(exp_folder+'data_x_w0_elas.parquet' )
     #data = add_forecast_elasticnet( data,features_above_canritos[:7])
     data = time_features(data)
-    data_x.write_parquet(exp_folder+'data_x_w0_time.parquet' )
+    data.write_parquet(exp_folder+'data_x_w0_time.parquet' )
     #lag_flag, delta_lag_flag = False, True
-    #data= add_lags_diff(data, lag_flag, delta_lag_flag )
+    data= add_lags_diff(data, lag_flag, delta_lag_flag )
     #features_above_canritos, features_above_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
     feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
     
     #data = time_features(data)
     #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
     data = div_sum_top_features_polars(data, feature_importance_df_ranking['feature'][:50].to_list())
-    
+    #data = div_sum_top_features_polars(data, feature_importance_df_ranking['feature'][:50].to_list())
     
     
     #print_nan_columns(data, 0.75, original_columns)
@@ -1476,7 +1476,10 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
     #data = drop_columns_nan_zero(data, 0.75, original_columns)
     data.write_parquet(exp_folder+'data_x_w0_final.parquet' )
-    #data_x=data
+    data_x=data
+    joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'dataset_201911s_elsatic.joblib')
+    data_x.write_parquet(exp_folder+'data_x.parquet' )
+
     return original_columns,original_columns_inta_mes,  data,  features_finales, feature_importance_df_ranking, feature_importance_df_bool
 
 
@@ -1642,24 +1645,9 @@ path_set_crudo = "/home/medina_robledo/buckets/b1/datasets/competencia_02_crudo.
 path_set_con_ternaria = "/home/medina_robledo/buckets/b1/datasets/competencia_02.csv"
 exp_folder = '/home/medina_robledo/buckets/b1/exp/escopeta_1/'
 
-"""
-if not os.path.exists(path_set_con_features_eng):
-    original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins)
-    data_x.write_parquet(path_set_con_features_eng, compression='gzip') 
-    
-    
-    joblib.dump([ original_columns,  top_15_feature_names , least_15_features, least_ampliado],  path_datos_accesorios)
-    joblib.dump([ original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado],  path_datos_accesorios)
-    data_x.write_parquet( path_set_con_features_eng )
-    data_x.write_csv(path_set_con_features_eng, compression='gzip')
-    joblib.dump([original_columns, data_x, top_15_feature_names, least_15_features, least_ampliado], 
-            path_set_con_features_eng, compress=('zlib', 3))
-else:
-    original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado= joblib.load( path_set_con_features_eng)
-    data_x = pl.read_parquet(path_set_con_features_eng)
-"""
 
 lag_flag, delta_lag_flag = True, True
+ds()
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 original_columns,original_columns_inta_mes,  data,  features_finales, feature_importance_df_ranking, feature_importance_df_bool =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], '/home/a_reinaldomedina/buckets/b2/exp/Python_optuna1/dataset_202000s_elsatic.joblib')
