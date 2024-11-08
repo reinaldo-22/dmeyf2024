@@ -1002,8 +1002,10 @@ def add_forecast_elasticnet( data,features_above_canritos):
 def get_top_and_least_important_boruta( data, ganancia_acierto,  mes_train, mes_test  ):
       
     
-       
-    data = data.with_columns(pl.col('Master_Finiciomora').cast(pl.Float64))    
+    try:   
+        data = data.with_columns(pl.col('Master_Finiciomora').cast(pl.Float64))    
+    except Exception as e :
+        pass
     
     
     df_train_3 = data.filter(pl.col('foto_mes') == mes_train)
@@ -1448,6 +1450,10 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     #data = add_forecast_elasticnet( data, col_dinero )
     
     
+    feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
+    baja_importancia = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==False ]['feature'].to_list()   
+    
+    data, new_features = enhanced_feature_binning(data, baja_importancia, N_bins=5)
     #data.write_parquet(exp_folder+'data_x_w0_elas.parquet' )
     #data = add_forecast_elasticnet( data,features_above_canritos[:7])
     data = time_features(data)
@@ -1480,7 +1486,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data= add_moth_encode( data)
     #print_nan_columns(data, 0.75, original_columns)
     #data= bins_least_importatn( data,features_below_canritos, N_bins ) 
-    data, new_features = enhanced_feature_binning(data, features_below_canritos, N_bins=5)
+    
     
     data= convert_to_int_float32_polars(data)
     #features_above_canritos, features_above_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
