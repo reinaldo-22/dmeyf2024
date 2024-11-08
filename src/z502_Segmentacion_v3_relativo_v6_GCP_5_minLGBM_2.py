@@ -1007,7 +1007,7 @@ def get_top_and_least_important_boruta( data, ganancia_acierto,  mes_train, mes_
     
     
     df_train_3 = data.filter(pl.col('foto_mes') == mes_train)
-    df_train_3= subsample_data_time_polars(df_train_3, 0.1, 'CONTINUA', 'clase_ternaria', random_state)      
+    df_train_3= subsample_data_time_polars(df_train_3, 0.1, 'CONTINUA', 'clase_ternaria', 42)      
     df_test = data.filter(pl.col('foto_mes') == mes_test)
     
     y_train = df_train_3['clase_ternaria'].to_pandas().map(lambda x: 0 if x == "CONTINUA" else 1)
@@ -1451,12 +1451,14 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     #data.write_parquet(exp_folder+'data_x_w0_elas.parquet' )
     #data = add_forecast_elasticnet( data,features_above_canritos[:7])
     data = time_features(data)
-    data.write_parquet(exp_folder+'data_x_w0_time.parquet' )
+    data= convert_to_int_float32_polars(data)
+    #data.write_parquet(exp_folder+'data_x_w0_time2.parquet' , compression='gzip')
+    #data = pl.read_parquet(exp_folder+'data_x_w0_time.parquet' )
     
     feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
     features_finales = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==True ]['feature'].to_list()   
     data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
-
+# 16% 624GB
 
     
     lag_flag, delta_lag_flag = True, True
@@ -1465,6 +1467,8 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
     features_finales = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==True ]['feature'].to_list()   
     data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
+    
+    data.write_parquet(exp_folder+'data_x_w0_lags.parquet' , compression='gzip')
     
     #data = time_features(data)
     #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
@@ -1485,7 +1489,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     #features_below_canritos = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==False ]['feature'].to_list()
     data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
     #data = drop_columns_nan_zero(data, 0.75, original_columns)
-    data.write_parquet(exp_folder+'data_x_w0_final.parquet' )
+    data.write_parquet(exp_folder+'data_x_w0_final.parquet' , compression='gzip')
     #data_x=data
     
     data.write_parquet(exp_folder+'data_x_w0_final.parquet' )
