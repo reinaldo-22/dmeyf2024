@@ -1499,9 +1499,9 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     #data_x=data
     
     data.write_parquet(exp_folder+'data_x_w0_final.parquet' )
-    data_x=data
-    joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'dataset_201911s_elsatic.joblib')
-    data_x.write_parquet(exp_folder+'data_x.parquet' )
+    #data_x=data
+    joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'dataset_201910.joblib')
+    #data_x.write_parquet(exp_folder+'data_x.parquet' )
     return original_columns,original_columns_inta_mes,  data,  features_finales, feature_importance_df_ranking, feature_importance_df_bool
 
 
