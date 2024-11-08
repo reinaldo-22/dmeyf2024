@@ -1430,7 +1430,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data = data.with_columns(  pl.col('cmobile_app_trx').cast(pl.Float32)  )
     # redusco dataset eliminando registros muy viejos
     # data = data.filter(pl.col('foto_mes') > 202100)
-    last_date_to_consider= 201910
+    
     data = data.filter(pl.col('foto_mes') > last_date_to_consider)
    
     original_columns= data.columns
@@ -1448,7 +1448,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data= convert_to_int_float32_polars(data)
     col_dinero= ['mcaja_ahorro_std' , 'mcuenta_corriente_std', 'mcuentas_saldo_std', 'ctrx_quarter_std', 'mrentabilidad_std', 'ctrx_quarter_normalizado_std']
     #data = add_forecast_elasticnet( data, col_dinero )
-    
+    data = data.sample(fraction=0.1, with_replacement=False)  # Set with
     
     feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
     baja_importancia = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==False ]['feature'].to_list()   
@@ -1474,7 +1474,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     features_finales = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==True ]['feature'].to_list()   
     data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
     
-    data.write_parquet(exp_folder+'data_x_w0_lags.parquet' , compression='gzip')
+    #data.write_parquet(exp_folder+'data_x_w0_lags.parquet' , compression='gzip')
     
     #data = time_features(data)
     #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
@@ -1498,7 +1498,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data.write_parquet(exp_folder+'data_x_w0_final.parquet' , compression='gzip')
     #data_x=data
     
-    data.write_parquet(exp_folder+'data_x_w0_final.parquet' )
+    #data.write_parquet(exp_folder+'data_x_w0_final.parquet' )
     #data_x=data
     joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'dataset_201910.joblib')
     #data_x.write_parquet(exp_folder+'data_x.parquet' )
@@ -1668,22 +1668,9 @@ path_set_crudo = "/home/medina_robledo/buckets/b1/datasets/competencia_02_crudo.
 path_set_con_ternaria = "/home/medina_robledo/buckets/b1/datasets/competencia_02.csv"
 exp_folder = '/home/medina_robledo/buckets/b1/exp/escopeta_1/'
 
-"""
-if not os.path.exists(path_set_con_features_eng):
-    original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins)
-    data_x.write_parquet(path_set_con_features_eng, compression='gzip') 
-    
-    
-    joblib.dump([ original_columns,  top_15_feature_names , least_15_features, least_ampliado],  path_datos_accesorios)
-    joblib.dump([ original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado],  path_datos_accesorios)
-    data_x.write_parquet( path_set_con_features_eng )
-    data_x.write_csv(path_set_con_features_eng, compression='gzip')
-    joblib.dump([original_columns, data_x, top_15_feature_names, least_15_features, least_ampliado], 
-            path_set_con_features_eng, compress=('zlib', 3))
-else:
-    original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado= joblib.load( path_set_con_features_eng)
-    data_x = pl.read_parquet(path_set_con_features_eng)
-"""
+path_set_crudo = "/home/medina_robledo/buckets/b1/datasets/competencia_02_crudo.csv"
+path_set_con_ternaria = "/home/medina_robledo/buckets/b1/datasets/competencia_02.csv"
+exp_folder = '/home/medina_robledo/buckets/b3/exp/escopeta_1'
 
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
