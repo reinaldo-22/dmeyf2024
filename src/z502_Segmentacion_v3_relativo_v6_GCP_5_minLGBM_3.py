@@ -1503,7 +1503,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     #data_x=data
     joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'dataset_201910.joblib')
     #data_x.write_parquet(exp_folder+'data_x.parquet' )
-    return original_columns,original_columns_inta_mes,  data,  features_finales, feature_importance_df_ranking, feature_importance_df_bool
+    return original_columns,original_columns_inta_mes,  data,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features
 
 
 # fin preparacion de datos.
@@ -1679,11 +1679,11 @@ exp_folder = '/home/medina_robledo/buckets/b3/exp/escopeta_1'
 
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
-ds()
-original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 
-joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], '/home/a_reinaldomedina/buckets/b2/exp/Python_optuna1/dataset_202000s_elsatic.joblib')
-data_x.write_parquet(exp_folder+'data_x.parquet' )
+original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+
+joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features], exp_folder+ 'aacc1.joblib')
+#data_x.write_parquet(exp_folder+'data_x.parquet' )
 
 #data_x= data
 #del(data)
