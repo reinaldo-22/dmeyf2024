@@ -1680,10 +1680,15 @@ exp_folder = '/home/medina_robledo/buckets/b3/exp/escopeta_1'
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 
-original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+#original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 
-joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features], exp_folder+ 'aacc1.joblib')
+#joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features], exp_folder+ 'aacc1.joblib')
 #data_x.write_parquet(exp_folder+'data_x.parquet' )
+ds()
+data_x = pl.read_parquet(exp_folder+'data_x_w0_final.parquet')
+
+original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features = joblib.load( exp_folder+ 'aacc1.joblib')
+
 
 #data_x= data
 #del(data)
@@ -1699,7 +1704,8 @@ penalty=0
 
 #exp_folder = '/home/reinaldo/7a310714-2a6d-44bd-bd76-c6a65540eb82/DMEF/exp/Python_optuna1/'
 #exp_folder = "~/buckets/b2/exp/comp2/"
-nombre_exp_study = 'comp2_study_4_1.joblib'
+#nombre_exp_study = 'comp2_study_4_1.joblib'
+nombre_exp_study = 'study_MiniLGBM_3.joblib'
 random_state=42
 cant_semillas_ensamble= 100
 cant_ensambples_ensamble= 10
@@ -1727,7 +1733,7 @@ def objective(trial):
     #params['min_gain_to_split'] = trial.suggest_float("min_gain_to_split", 0.0, 1.0)  # Minimum gain to split
     #params['lambda_l1'] = trial.suggest_float("lambda_l1", 0.0, 10.0)  # L1 regularization
     #params['lambda_l2'] = trial.suggest_float("lambda_l2", 0.0, 10.0)  # L2 regularization
-    params['num_iterations'] = trial.suggest_int("num_iterations", 3, 500)  # Number of boosting iterations    
+    params['num_iterations'] = trial.suggest_int("num_iterations", 3, 50)  # Number of boosting iterations    
     params['bagging_fraction'] = trial.suggest_float('bagging_fraction', 0.01, 1.0)   
     clase_peso_lgbm = trial.suggest_int('clase_peso_lgbm',1, ganancia_acierto+10000)   
     cant_semillas_ensamble = trial.suggest_int('cant_semillas_ensamble',100, 2000)   
@@ -1762,11 +1768,11 @@ def objective(trial):
     #train_for_predict= [wt +2 for wt in trains]
     random.seed(random_state)
     #random_numbers = [random.random() for _ in range(max_semillas)]
-    random_numbers = np.random.randint(low=-32768, high=32767, size=cant_semillas_ensamble, dtype=np.int16).tolist()
+    random_numbers = np.random.randint(low=1, high=32767, size=cant_semillas_ensamble, dtype=np.int16).tolist()
     res= []
     start= time.time()
     for rnd in random_numbers:
-        y_test_pred,test_data = exectue_model(final_selection,trains, mes_test, data_x, fraction, params,trial_number,feature_selection,random_state,clase_peso_lgbm)
+        y_test_pred,test_data = exectue_model(final_selection,trains, mes_test, data_x, fraction, params,trial_number,feature_selection,rnd,clase_peso_lgbm)
         res.append( y_test_pred)
     elapsed_time =  time.time() -start
     res =np.mean( res)
@@ -1875,7 +1881,7 @@ else:
 
 for i in range(0, 3000):
     #study.optimize(objective, n_trials=1)  # You can specify the number of trials
-    study.optimize(objective, n_trials=1, n_jobs=-1)
+    study.optimize(objective, n_trials=4, n_jobs=-1)
     joblib.dump( study, exp_folder+ nombre_exp_study)     
     
     
