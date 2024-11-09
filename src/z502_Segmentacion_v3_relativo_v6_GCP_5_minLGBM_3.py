@@ -1463,8 +1463,8 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
 # 16% 624GB
     data.write_parquet(exp_folder+'data_lags.parquet' , compression='gzip')
     joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'acc_lagsjoblib')    
-
-
+    # data= pl.read_parquet(exp_folder+'data_lags.parquet' )
+    # original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool = joblib.load(exp_folder+'acc_lags.joblib')
     #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
     data = div_sum_top_features_polars(data, feature_importance_df_ranking['feature'][:50].to_list())
         
@@ -1477,6 +1477,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data.write_parquet(exp_folder+'data_x_final.parquet' , compression='gzip')
     joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'acc_final.joblib')
     
+
     return original_columns,original_columns_inta_mes,  data,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features
 
 
@@ -1650,13 +1651,14 @@ exp_folder = '/home/medina_robledo/buckets/b1/exp/escopeta_1/'
 exp_folder = '/home/medina_robledo/buckets/b3/exp/escopeta_1'
 exp_folder = '/home/medina_robledo/buckets/b3/exp/escopeta_2/'
 exp_folder = '/home/medina_robledo/buckets/b2/exp/escopeta_2/'
+exp_folder = '/home/medina_robledo/buckets/b3/exp/escopeta_2/'
 
 
 
 
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
-
+ds()
 original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 
 #joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features], exp_folder+ 'aacc1.joblib')
@@ -1701,7 +1703,7 @@ trains= [202102, 202103, 202104]
 top_15_feature_names= feature_importance_df_ranking['feature'][:50]
 def objective(trial):
     global best_result, best_predictions, penalty, top_15_feature_names, data,random_state, trains,mes_test
-    params['learning_rate'] = trial.suggest_float("learning_rate", 0.001, 0.7)   
+    params['learning_rate'] = trial.suggest_float("learning_rate", 0.1, 0.7)   
     params['feature_fraction'] = trial.suggest_float("feature_fraction", 0.01, 1.0)
    
     params['min_data_in_leaf'] = trial.suggest_int("min_data_in_leaf", 100, 15000)  # Example of leaf size    
@@ -1711,7 +1713,7 @@ def objective(trial):
     #params['min_gain_to_split'] = trial.suggest_float("min_gain_to_split", 0.0, 1.0)  # Minimum gain to split
     #params['lambda_l1'] = trial.suggest_float("lambda_l1", 0.0, 10.0)  # L1 regularization
     #params['lambda_l2'] = trial.suggest_float("lambda_l2", 0.0, 10.0)  # L2 regularization
-    params['num_iterations'] = trial.suggest_int("num_iterations", 3, 50)  # Number of boosting iterations    
+    params['num_iterations'] = trial.suggest_int("num_iterations", 1, 50)  # Number of boosting iterations    
     params['bagging_fraction'] = trial.suggest_float('bagging_fraction', 0.01, 1.0)   
     params['verbosity'] = -1
     clase_peso_lgbm = trial.suggest_int('clase_peso_lgbm',1, ganancia_acierto+10000)   
