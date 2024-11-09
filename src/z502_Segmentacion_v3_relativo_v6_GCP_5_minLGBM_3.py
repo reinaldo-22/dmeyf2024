@@ -1706,7 +1706,8 @@ def objective(trial):
     params['learning_rate'] = trial.suggest_float("learning_rate", 0.1, 0.7)   
     params['feature_fraction'] = trial.suggest_float("feature_fraction", 0.01, 1.0)
    
-    params['min_data_in_leaf'] = trial.suggest_int("min_data_in_leaf", 100, 15000)  # Example of leaf size    
+    # params['min_data_in_leaf'] = trial.suggest_int("min_data_in_leaf", 100, 15000)  # Example of leaf size    
+    params['min_data_in_leaf'] = trial.suggest_int("min_data_in_leaf", 0.001, 0.05)  # Example of leaf size    
     #params['min_child_samples'] = trial.suggest_int("min_child_samples", 1, 100)  # Example of coverage
     #params['seed'] =   int(time())
     params['max_depth'] = trial.suggest_int("max_depth", 1, 30)  # Control tree depth
@@ -1715,11 +1716,15 @@ def objective(trial):
     #params['lambda_l2'] = trial.suggest_float("lambda_l2", 0.0, 10.0)  # L2 regularization
     params['num_iterations'] = trial.suggest_int("num_iterations", 1, 50)  # Number of boosting iterations    
     params['bagging_fraction'] = trial.suggest_float('bagging_fraction', 0.01, 1.0)   
+ 
     params['verbosity'] = -1
     clase_peso_lgbm = trial.suggest_int('clase_peso_lgbm',1, ganancia_acierto+10000)   
     cant_semillas_ensamble = trial.suggest_int('cant_semillas_ensamble',80, 300)   
-    fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
-
+#    fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
+    fraction  = trial.suggest_float('fracccion', 0.05, 0.2)   
+    cantidad_meses = trial.suggest_int('cantidad_meses', 1, 6)   
+    feature_fracccion= trial.suggest_float('feature_fracccion', 0.1, 1)   
+    
     woriginal_columns = list( set(original_columns) -{'clase_ternaria'})    
     trial_number= trial.number
     if trial_number>400:
