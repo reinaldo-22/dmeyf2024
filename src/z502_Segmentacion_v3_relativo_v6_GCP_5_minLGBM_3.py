@@ -1438,7 +1438,7 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     data= AgregarVariables_IntraMes(data)
     original_columns_inta_mes= data.columns
    
-    3data= convert_to_int_float32_polars(data)
+    data= convert_to_int_float32_polars(data)
    
     data= standardize_columns(data) 
     data= convert_to_int_float32_polars(data)
