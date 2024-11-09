@@ -1437,14 +1437,9 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     original_columns= data.columns
     data= AgregarVariables_IntraMes(data)
     original_columns_inta_mes= data.columns
-    # data = data.iloc[:500000,:]
-    # data= data.slice(0, 100000)    
-    #all_times[:-stride-window]
-    #Out[25]: [202108, 202107, 202106, 202105]
-    #mes_train, mes_test  =   202105, 202106
-    #top_15_feature_names , least_15_features, least_ampliado=   get_top_and_least_important( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
-    data= convert_to_int_float32_polars(data)
-   # features_above_canritos, features_below_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
+   
+    3data= convert_to_int_float32_polars(data)
+   
     data= standardize_columns(data) 
     data= convert_to_int_float32_polars(data)
     col_dinero= ['mcaja_ahorro_std' , 'mcuenta_corriente_std', 'mcuentas_saldo_std', 'ctrx_quarter_std', 'mrentabilidad_std', 'ctrx_quarter_normalizado_std']
@@ -1452,57 +1447,36 @@ def create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_se
     
     
     feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
-    baja_importancia = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==False ]['feature'].to_list()   
-    
+    baja_importancia = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==False ]['feature'].to_list()       
     data, new_features = enhanced_feature_binning(data, baja_importancia, N_bins)
-    #data.write_parquet(exp_folder+'data_x_w0_elas.parquet' )
-    #data = add_forecast_elasticnet( data,features_above_canritos[:7])
+
     data = time_features(data)
     data= convert_to_int_float32_polars(data)
-    #data.write_parquet(exp_folder+'data_x_w0_time2.parquet' , compression='gzip')
-    #data = pl.read_parquet(exp_folder+'data_x_w0_time.parquet' )
+    
+    lag_flag, delta_lag_flag = True, True
+    data= add_lags_diff(data, lag_flag, delta_lag_flag )
+    data= add_moth_encode( data)
     
     feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
     features_finales = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==True ]['feature'].to_list()   
     data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
 # 16% 624GB
+    data.write_parquet(exp_folder+'data_lags.parquet' , compression='gzip')
+    joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'acc_lagsjoblib')    
 
-    
-    lag_flag, delta_lag_flag = True, True
-    data= add_lags_diff(data, lag_flag, delta_lag_flag )
-    
-    feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
-    features_finales = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==True ]['feature'].to_list()   
-    data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
-    
-    #data.write_parquet(exp_folder+'data_x_w0_lags.parquet' , compression='gzip')
-    
-    #data = time_features(data)
+
     #data_reg = regression_per_client(data ,features_below_canritos) #muy lento Usae el codigo de R
-    data = div_sum_top_features_polars(data, feature_importance_df_ranking['feature'][:3].to_list())
-    
-    
-    
-    #print_nan_columns(data, 0.75, original_columns)
-    data= add_moth_encode( data)
-    #print_nan_columns(data, 0.75, original_columns)
-    #data= bins_least_importatn( data,features_below_canritos, N_bins ) 
-    
-    
+    data = div_sum_top_features_polars(data, feature_importance_df_ranking['feature'][:50].to_list())
+        
     data= convert_to_int_float32_polars(data)
-    #features_above_canritos, features_above_canritos = get_top_and_least_important_y_canaritos( data, N_top, N_least, N_least_ampliado,  mes_train, mes_test  )
-    feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
-    features_finales = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==True ]['feature'].to_list()
-    #features_below_canritos = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==False ]['feature'].to_list()
-    data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
-    #data = drop_columns_nan_zero(data, 0.75, original_columns)
-    data.write_parquet(exp_folder+'data_x_w0_final.parquet' , compression='gzip')
-    #data_x=data
     
-    #data.write_parquet(exp_folder+'data_x_w0_final.parquet' )
-    #data_x=data
-    joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'dataset_201910.joblib')
-    #data_x.write_parquet(exp_folder+'data_x.parquet' )
+    feature_importance_df_ranking, feature_importance_df_bool = get_top_and_least_important_boruta( data,ganancia_acierto,  mes_train, mes_test  )
+    features_finales = feature_importance_df_bool[ feature_importance_df_bool['importance_split']==True ]['feature'].to_list()    
+    data= data[['numero_de_cliente','foto_mes','clase_ternaria']+ features_finales]
+
+    data.write_parquet(exp_folder+'data_x_final.parquet' , compression='gzip')
+    joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool], exp_folder+'acc_final.joblib')
+    
     return original_columns,original_columns_inta_mes,  data,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features
 
 
@@ -1674,18 +1648,21 @@ path_set_crudo = "/home/medina_robledo/buckets/b1/datasets/competencia_02_crudo.
 path_set_con_ternaria = "/home/medina_robledo/buckets/b1/datasets/competencia_02.csv"
 exp_folder = '/home/medina_robledo/buckets/b1/exp/escopeta_1/'
 exp_folder = '/home/medina_robledo/buckets/b3/exp/escopeta_1'
+exp_folder = '/home/medina_robledo/buckets/b3/exp/escopeta_2/'
+exp_folder = '/home/medina_robledo/buckets/b2/exp/escopeta_2/'
+
 
 
 
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 
-#original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 
 #joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features], exp_folder+ 'aacc1.joblib')
 #data_x.write_parquet(exp_folder+'data_x.parquet' )
-ds()
-data_x = pl.read_parquet(exp_folder+'data_x_w0_final.parquet')
+#ds()
+#data_x = pl.read_parquet(exp_folder+'data_x_w0_final.parquet')
 
 original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features = joblib.load( exp_folder+ 'aacc1.joblib')
 
@@ -1715,6 +1692,7 @@ final_train = [202006,202007,202008,202009,202010,202011,202012,202101,202102, 2
 
 #trains= [ 202103, 202104]
 trains= [202011,202012,202101,202102, 202103, 202104]
+trains= [202102, 202103, 202104]
 #final_train = [202006,202007,202008,202009,202010,202011,202012,202101,202102, 202103, 202104, 202105, 202106]
 
 
@@ -1735,8 +1713,9 @@ def objective(trial):
     #params['lambda_l2'] = trial.suggest_float("lambda_l2", 0.0, 10.0)  # L2 regularization
     params['num_iterations'] = trial.suggest_int("num_iterations", 3, 50)  # Number of boosting iterations    
     params['bagging_fraction'] = trial.suggest_float('bagging_fraction', 0.01, 1.0)   
+    params['verbosity'] = -1
     clase_peso_lgbm = trial.suggest_int('clase_peso_lgbm',1, ganancia_acierto+10000)   
-    cant_semillas_ensamble = trial.suggest_int('cant_semillas_ensamble',100, 2000)   
+    cant_semillas_ensamble = trial.suggest_int('cant_semillas_ensamble',80, 300)   
     fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
 
     woriginal_columns = list( set(original_columns) -{'clase_ternaria'})    
@@ -1772,6 +1751,7 @@ def objective(trial):
     res= []
     start= time.time()
     for rnd in random_numbers:
+        print('trial', trial_number, ' ensamble n ', random_numbers.index(rnd))
         y_test_pred,test_data = exectue_model(final_selection,trains, mes_test, data_x, fraction, params,trial_number,feature_selection,rnd,clase_peso_lgbm)
         res.append( y_test_pred)
     elapsed_time =  time.time() -start
