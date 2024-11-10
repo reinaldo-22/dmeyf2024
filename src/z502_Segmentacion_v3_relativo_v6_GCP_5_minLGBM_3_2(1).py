@@ -1695,6 +1695,7 @@ original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_
 #data_x = pl.read_parquet(exp_folder+'data_x_w0_final.parquet')
 data_x = pl.read_parquet( '/home/medina_robledo/Documents/data_x_final.parquet')
 
+
 #original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features = joblib.load( exp_folder+ 'acc_final.joblib')
 original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool = joblib.load( exp_folder+ 'acc_final.joblib')
 
@@ -1776,6 +1777,7 @@ def objective(trial):
 #    fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
     fraction  = trial.suggest_float('fracccion', 0.01, 0.2)   
     cantidad_meses = trial.suggest_int('cantidad_meses', 1, 12)   
+    trial_number= trial.number
     
     params['learning_rate'] = 0.3
     params['feature_fraction'] = 0.5
@@ -1790,7 +1792,7 @@ def objective(trial):
     trial_number=0
     
     woriginal_columns = list( set(original_columns) -{'clase_ternaria'})    
-    trial_number= trial.number
+    
     if trial_number>400:
         feature_selection=[]
         for  col in least_ampliado:
@@ -1824,7 +1826,7 @@ def objective(trial):
     start= time.time()
     for rnd in random_numbers:
         print('trial', trial_number, ' ensamble n: ', random_numbers.index(rnd))
-        y_test_pred,test_data = exectue_model(final_selection,trains, mes_test, data_x, fraction, params,trial_number,feature_selection,rnd,clase_peso_lgbm)
+        y_test_pred,test_data,y_test= exectue_model(final_selection,trains, mes_test, data_x, fraction, params,trial_number,feature_selection,rnd,clase_peso_lgbm)
         res.append( y_test_pred)
         welapsed_time =  time.time() -start
         welapsed_time= welapsed_time/60/60
@@ -1838,6 +1840,7 @@ def objective(trial):
     mean_array = np.mean(res, axis=0)
     res =np.mean( res, axis=0)
     res0= lgb_gan_eval(res, test_data)[1]  
+    lgb_gan_eval(y_pred, y_true)
     return res0 ,elapsed_time #- len(feature_selection )*penalty, time
 
 
@@ -1928,7 +1931,7 @@ def exectue_model(final_selection,trains, mes_test, data_x, fraction, params, tr
         future_data = lgb.Dataset(X_future.to_pandas() )       
         y_future = model.predict( future_data )"""
        
-    return y_test_pred,test_data #res0
+    return y_test_pred,test_data,y_test.to_pandas()
 
 
 
