@@ -1686,8 +1686,10 @@ original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_
 #data_x.write_parquet(exp_folder+'data_x.parquet' )
 #ds()
 #data_x = pl.read_parquet(exp_folder+'data_x_w0_final.parquet')
+data_x = pl.read_parquet( '/home/medina_robledo/Documents/data_x_final.parquet')
 
-original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features = joblib.load( exp_folder+ 'aacc1.joblib')
+#original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features = joblib.load( exp_folder+ 'acc_final.joblib')
+original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool = joblib.load( exp_folder+ 'acc_final.joblib')
 
 
 #data_x= data
@@ -1718,7 +1720,33 @@ final_train = [202006,202007,202008,202009,202010,202011,202012,202101,202102, 2
 #trains= [202102, 202103, 202104]
 #final_train = [202006,202007,202008,202009,202010,202011,202012,202101,202102, 202103, 202104, 202105, 202106]
 
-
+params = {
+      "boosting_type": "gbdt",  # Can also be 'dart', but not tested with random_forest
+      "objective": "binary",    # Binary classification
+      "metric": "custom",       # Custom evaluation metric
+      "first_metric_only": True,
+      "boost_from_average": True,
+      "feature_pre_filter": False,
+      "force_row_wise": True,   # To reduce warnings
+      "verbosity": -100,        # Set verbosity level to reduce output
+      "max_depth": -1,          # No limit on depth
+      "min_gain_to_split": 0.0, # Minimum gain to split a node
+      "min_sum_hessian_in_leaf": 0.001, # Minimum sum of Hessian in leaf
+      "lambda_l1": 0.0,         # L1 regularization
+      "lambda_l2": 0.0,         # L2 regularization
+      "max_bin": 31,            # Maximum number of bins
+      "num_iterations": 9999,   # Large number, controlled by early stopping
+      "bagging_fraction": 1.0,  # Fraction of data used for bagging
+      "pos_bagging_fraction": 1.0,  # Fraction of positive data used for bagging
+      "neg_bagging_fraction": 1.0,  # Fraction of negative data used for bagging
+      "is_unbalance": False,    # Do not balance the classes
+      "scale_pos_weight": 1.0,  # Weighting for positive class
+      "drop_rate": 0.1,         # Drop rate for DART (if used)
+      "max_drop": 50,           # Maximum number of drops for DART
+      "skip_drop": 0.5,         # Probability of skipping a drop for DART
+      "extra_trees": False,     # Disable extra trees
+  }
+  
 
 #top_15_feature_names= features_finales[:50]
 top_15_feature_names= feature_importance_df_ranking['feature'][:50]
@@ -1733,33 +1761,7 @@ def objective(trial):
     params['num_leaves'] = trial.suggest_int("num_leaves", 8, 2048)
     params['min_data_in_leaf'] = trial.suggest_int("min_data_in_leaf",  1.5E-05, 0.002)  # Example of leaf size    
 
-    params = {
-        "boosting_type": "gbdt",  # Can also be 'dart', but not tested with random_forest
-        "objective": "binary",    # Binary classification
-        "metric": "custom",       # Custom evaluation metric
-        "first_metric_only": True,
-        "boost_from_average": True,
-        "feature_pre_filter": False,
-        "force_row_wise": True,   # To reduce warnings
-        "verbosity": -100,        # Set verbosity level to reduce output
-        "max_depth": -1,          # No limit on depth
-        "min_gain_to_split": 0.0, # Minimum gain to split a node
-        "min_sum_hessian_in_leaf": 0.001, # Minimum sum of Hessian in leaf
-        "lambda_l1": 0.0,         # L1 regularization
-        "lambda_l2": 0.0,         # L2 regularization
-        "max_bin": 31,            # Maximum number of bins
-        "num_iterations": 9999,   # Large number, controlled by early stopping
-        "bagging_fraction": 1.0,  # Fraction of data used for bagging
-        "pos_bagging_fraction": 1.0,  # Fraction of positive data used for bagging
-        "neg_bagging_fraction": 1.0,  # Fraction of negative data used for bagging
-        "is_unbalance": False,    # Do not balance the classes
-        "scale_pos_weight": 1.0,  # Weighting for positive class
-        "drop_rate": 0.1,         # Drop rate for DART (if used)
-        "max_drop": 50,           # Maximum number of drops for DART
-        "skip_drop": 0.5,         # Probability of skipping a drop for DART
-        "extra_trees": False,     # Disable extra trees
-    }
-    
+  
     clase_peso_lgbm = trial.suggest_int('clase_peso_lgbm',1, ganancia_acierto+10000)   
     cant_semillas_ensamble = trial.suggest_int('cant_semillas_ensamble',80, 400)   
 #    fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
@@ -1906,13 +1908,11 @@ if os.path.exists(exp_folder+nombre_exp_study):
 else: 
     #study = optuna.create_study(direction="maximize")
     #study = optuna.create_study(direction=["maximize", "minimize"])
-    study = optuna.create_study(
-        directions=[StudyDirection.MAXIMIZE, StudyDirection.MINIMIZE]
-    )
+    study = optuna.create_study( directions=[StudyDirection.MAXIMIZE, StudyDirection.MINIMIZE]   timeout=60*60*2  )
 
 for i in range(0, 3000):
     #study.optimize(objective, n_trials=1)  # You can specify the number of trials
-    study.optimize(objective, n_trials=4, n_jobs=-1)
+    study.optimize(objective, n_trials=1, n_jobs=-1)
     joblib.dump( study, exp_folder+ nombre_exp_study)     
     
     
