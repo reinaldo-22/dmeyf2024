@@ -1779,6 +1779,7 @@ def objective(trial):
     cantidad_meses = trial.suggest_int('cantidad_meses', 1, 12)   
     trial_number= trial.number
     
+    """ 
     params['learning_rate'] = 0.3
     params['feature_fraction'] = 0.8
     params['num_leaves'] = 7
@@ -1790,6 +1791,7 @@ def objective(trial):
     fraction  = 0.25
     cantidad_meses = 2
     trial_number=0
+    """
     
     woriginal_columns = list( set(original_columns) -{'clase_ternaria'})    
     
@@ -1832,15 +1834,17 @@ def objective(trial):
         welapsed_time= welapsed_time/60/60
         if welapsed_time >1.1:
             elapsed_time =  time.time() -start
-            res =np.mean( res)
-            res0= lgb_gan_eval(res, test_data)[1]  
+           
+            res =np.mean( res, axis=0)
+            #res0= lgb_gan_eval(res, test_data)[1]  
+            res0 = lgb_gan_eval(res, y_test)[1]  
             return res0 ,elapsed_time  * cant_semillas_ensamble/random_numbers.index(rnd)#- len(feature_selection )*penalty, time
             
     elapsed_time =  time.time() -start
-    mean_array = np.mean(res, axis=0)
+   
     res =np.mean( res, axis=0)
-    res0= lgb_gan_eval(res, test_data)[1]  
-    lgb_gan_eval(y_test_pred, y_test)
+    #res0= lgb_gan_eval(res, test_data)[1]  
+    res0 = lgb_gan_eval(res, y_test)[1]  
     return res0 ,elapsed_time #- len(feature_selection )*penalty, time
 
 
