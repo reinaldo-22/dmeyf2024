@@ -1735,7 +1735,7 @@ params = {
       "lambda_l1": 0.0,         # L1 regularization
       "lambda_l2": 0.0,         # L2 regularization
       "max_bin": 31,            # Maximum number of bins
-      "num_iterations": 9999,   # Large number, controlled by early stopping
+      #"num_iterations": 9999,   # Large number, controlled by early stopping
       "bagging_fraction": 1.0,  # Fraction of data used for bagging
       "pos_bagging_fraction": 1.0,  # Fraction of positive data used for bagging
       "neg_bagging_fraction": 1.0,  # Fraction of negative data used for bagging
@@ -1760,7 +1760,9 @@ def objective(trial):
     params['feature_fraction'] = trial.suggest_float("feature_fraction", 0.1, 0.9)
     params['num_leaves'] = trial.suggest_int("num_leaves", 8, 2048)
     params['min_data_in_leaf'] = trial.suggest_int("min_data_in_leaf",  1.5E-05, 0.002)  # Example of leaf size    
-
+    params['num_iterations'] = trial.suggest_int("num_iterations",  1, 50)  # Example of leaf size    
+    
+    
   
     clase_peso_lgbm = trial.suggest_int('clase_peso_lgbm',2, ganancia_acierto+10000)   
     cant_semillas_ensamble = trial.suggest_int('cant_semillas_ensamble',60, 400)   
@@ -1768,6 +1770,17 @@ def objective(trial):
     fraction  = trial.suggest_float('fracccion', 0.01, 0.2)   
     cantidad_meses = trial.suggest_int('cantidad_meses', 1, 12)   
     
+    params['learning_rate'] = 0.3
+    params['feature_fraction'] = 0.5
+    params['num_leaves'] = 8
+    params['min_data_in_leaf'] = 0.002
+    params['num_iterations'] = 20
+    clase_peso_lgbm =  ganancia_acierto+1000
+    cant_semillas_ensamble =20
+#    fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
+    fraction  = 0.25
+    cantidad_meses = 2
+    trial_number=0
     
     woriginal_columns = list( set(original_columns) -{'clase_ternaria'})    
     trial_number= trial.number
@@ -1815,7 +1828,8 @@ def objective(trial):
             return res0 ,elapsed_time  * cant_semillas_ensamble/random_numbers.index(rnd)#- len(feature_selection )*penalty, time
             
     elapsed_time =  time.time() -start
-    res =np.mean( res)
+    mean_array = np.mean(res, axis=0)
+    res =np.mean( res, axis=0)
     res0= lgb_gan_eval(res, test_data)[1]  
     return res0 ,elapsed_time #- len(feature_selection )*penalty, time
 
