@@ -1762,8 +1762,8 @@ def objective(trial):
     params['min_data_in_leaf'] = trial.suggest_int("min_data_in_leaf",  1.5E-05, 0.002)  # Example of leaf size    
 
   
-    clase_peso_lgbm = trial.suggest_int('clase_peso_lgbm',1, ganancia_acierto+10000)   
-    cant_semillas_ensamble = trial.suggest_int('cant_semillas_ensamble',80, 400)   
+    clase_peso_lgbm = trial.suggest_int('clase_peso_lgbm',2, ganancia_acierto+10000)   
+    cant_semillas_ensamble = trial.suggest_int('cant_semillas_ensamble',60, 400)   
 #    fraction = 0.1# trial.suggest_float('fraction', 0.01, 1)             
     fraction  = trial.suggest_float('fracccion', 0.01, 0.2)   
     cantidad_meses = trial.suggest_int('cantidad_meses', 1, 12)   
@@ -1806,6 +1806,14 @@ def objective(trial):
         print('trial', trial_number, ' ensamble n: ', random_numbers.index(rnd))
         y_test_pred,test_data = exectue_model(final_selection,trains, mes_test, data_x, fraction, params,trial_number,feature_selection,rnd,clase_peso_lgbm)
         res.append( y_test_pred)
+        welapsed_time =  time.time() -start
+        welapsed_time= welapsed_time/60/60
+        if welapsed_time >1.1:
+            elapsed_time =  time.time() -start
+            res =np.mean( res)
+            res0= lgb_gan_eval(res, test_data)[1]  
+            return res0 ,elapsed_time  * cant_semillas_ensamble/random_numbers.index(rnd)#- len(feature_selection )*penalty, time
+            
     elapsed_time =  time.time() -start
     res =np.mean( res)
     res0= lgb_gan_eval(res, test_data)[1]  
@@ -1908,7 +1916,7 @@ if os.path.exists(exp_folder+nombre_exp_study):
 else: 
     #study = optuna.create_study(direction="maximize")
     #study = optuna.create_study(direction=["maximize", "minimize"])
-    study = optuna.create_study( directions=[StudyDirection.MAXIMIZE, StudyDirection.MINIMIZE]   timeout=60*60*2  )
+    study = optuna.create_study( directions=[StudyDirection.MAXIMIZE, StudyDirection.MINIMIZE] ) #, timeout=60*60*2  )
 
 for i in range(0, 3000):
     #study.optimize(objective, n_trials=1)  # You can specify the number of trials
