@@ -1686,8 +1686,8 @@ exp_folder = '/home/medina_robledo/buckets/b3/exp/escopeta_2/'
 
 lag_flag, delta_lag_flag = True, True
 #original_columns, data_x,  top_15_feature_names , least_15_features, least_ampliado = create_data(last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
-ds()
-original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
+#ds()
+#original_columns,original_columns_inta_mes,  data_x,  features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features =create_data(ganancia_acierto, last_date_to_consider, path_set_crudo, path_set_con_ternaria, N_top, N_least,  mes_train, mes_test , N_least_ampliado, N_bins,lag_flag, delta_lag_flag)
 
 #joblib.dump( [ original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features], exp_folder+ 'aacc1.joblib')
 #data_x.write_parquet(exp_folder+'data_x.parquet' )
@@ -1832,7 +1832,7 @@ def objective(trial):
         res.append( y_test_pred)
         welapsed_time =  time.time() -start
         welapsed_time= welapsed_time/60/60
-        if welapsed_time >1.1:
+        if welapsed_time >1:
             elapsed_time =  time.time() -start
            
             res =np.mean( res, axis=0)
@@ -1948,7 +1948,7 @@ else:
 
 for i in range(0, 3000):
     #study.optimize(objective, n_trials=1)  # You can specify the number of trials
-    study.optimize(objective, n_trials=1, n_jobs=-1)
+    study.optimize(objective, n_trials=5, n_jobs=-1)
     joblib.dump( study, exp_folder+ nombre_exp_study)     
     
     
