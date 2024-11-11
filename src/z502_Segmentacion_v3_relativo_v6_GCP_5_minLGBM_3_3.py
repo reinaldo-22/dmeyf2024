@@ -1832,7 +1832,7 @@ def objective(trial):
         res.append( y_test_pred)
         welapsed_time =  time.time() -start
         welapsed_time= welapsed_time/60/60
-        if welapsed_time >1:
+        if welapsed_time >3:
             elapsed_time =  time.time() -start
            
             res =np.mean( res, axis=0)
