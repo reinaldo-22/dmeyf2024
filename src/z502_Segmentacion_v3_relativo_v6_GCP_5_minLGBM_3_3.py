@@ -1694,7 +1694,7 @@ lag_flag, delta_lag_flag = True, True
 #ds()
 #data_x = pl.read_parquet(exp_folder+'data_x_w0_final.parquet')
 data_x = pl.read_parquet( '/home/medina_robledo/Documents/data_x_final.parquet')
-
+#data_x = pl.read_parquet( '/home/medina_robledo/buckets/b3/exp/escopeta_2/exp_escopeta_2_data_x_final.parquet')
 
 #original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool, new_features = joblib.load( exp_folder+ 'acc_final.joblib')
 original_columns,original_columns_inta_mes, features_finales, feature_importance_df_ranking, feature_importance_df_bool = joblib.load( exp_folder+ 'acc_final.joblib')
