@@ -224,11 +224,11 @@ CanaritosAsesinos <- function(
           
           # Assign new columns
           #new_cols[[paste0(i, "_rot45c1_", k)]] <- as.numeric(rot45c1)
-          new_cols[[paste0(i, "_rot45c2_", k)]] <- as.numeric(rot45c2)
-          new_cols[[paste0(i, "_minus_", k)]] <- as.numeric(minus)
-          new_cols[[paste0(i, "_sum_", k)]] <- as.numeric(sum_cols)
-          new_cols[[paste0(i, "_div_", k)]] <- as.numeric(div)
-          new_cols[[paste0(i, "_mult_", k)]] <- as.numeric(mult)
+          #new_cols[[paste0(i, "_rot45c2_", k)]] <- as.numeric(rot45c2)
+          #new_cols[[paste0(i, "_minus_", k)]] <- as.numeric(minus)
+          #new_cols[[paste0(i, "_sum_", k)]] <- as.numeric(sum_cols)
+          #new_cols[[paste0(i, "_div_", k)]] <- as.numeric(div)
+          #new_cols[[paste0(i, "_mult_", k)]] <- as.numeric(mult)
           
           new_cols[[paste0(i, "rot45c1", k)]] <- float::float(rot45c1)
           new_cols[[paste0(i, "_rot45c2_", k)]] <- float::float(rot45c2)
@@ -239,7 +239,73 @@ CanaritosAsesinos <- function(
         }
       }
     }
-    
+    div_sum_top_features_r2 <- function(data, top_features) {
+      library(data.table)
+      library(float)
+      
+      # Select top features
+      data_top <- data[, ..top_features]
+      data_top <- data_top[, lapply(.SD, function(x) as.numeric(as.character(x)))]
+      
+      cols <- names(data_top)
+      n_features <- length(cols)
+      n_rows <- nrow(data_top)
+      
+      # Preallocate data.table for new columns
+      n_combinations <- n_features * (n_features - 1)
+      new_cols <- vector("list", n_combinations * 6)  # 6 operations per pair
+      col_names <- vector("character", length(new_cols))
+      
+      index <- 1
+      for (i in cols) {
+        for (k in cols) {
+          if (i != k) {
+            col_i <- float::float(data_top[[i]])
+            col_k <- float::float(data_top[[k]])
+            
+            rot45c1 <- col_i * cos(pi/4) - sin(pi/4) * col_k
+            rot45c2 <- col_i * sin(pi/4) + cos(pi/4) * col_k
+            minus <- col_i - col_k
+            sum_cols <- col_i + col_k
+            div <- ifelse(col_k != 0, col_i / col_k, 0)
+            mult <- col_i * col_k
+            
+            # Assign to preallocated list
+            new_cols[[index]] <- rot45c1
+            col_names[index] <- paste0(i, "_rot45c1_", k)
+            index <- index + 1
+            
+            new_cols[[index]] <- rot45c2
+            col_names[index] <- paste0(i, "_rot45c2_", k)
+            index <- index + 1
+            
+            new_cols[[index]] <- minus
+            col_names[index] <- paste0(i, "_minus_", k)
+            index <- index + 1
+            
+            new_cols[[index]] <- sum_cols
+            col_names[index] <- paste0(i, "_sum_", k)
+            index <- index + 1
+            
+            new_cols[[index]] <- div
+            col_names[index] <- paste0(i, "_div_", k)
+            index <- index + 1
+            
+            new_cols[[index]] <- mult
+            col_names[index] <- paste0(i, "_mult_", k)
+            index <- index + 1
+          }
+        }
+      }
+      
+      # Convert to data.table
+      data_calculations <- as.data.table(setNames(new_cols, col_names))
+      
+      # Combine original data with new calculations
+      result <- cbind(data, data_calculations)
+      
+      return(result)
+    }
     cat( "new table()\n")
     # Create data.table with new columns
     data_calculations <- as.data.table(new_cols)
@@ -258,7 +324,7 @@ CanaritosAsesinos <- function(
   top_50_features <- col_utiles[1:50]
   
   
-  dataset <- div_sum_top_features_r(dataset, top_50_features)
+  dataset <- div_sum_top_features_r2(dataset, top_50_features)
   # repito todo de nuevo
   
   
