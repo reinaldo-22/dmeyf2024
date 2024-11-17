@@ -12,8 +12,9 @@ if( !exists("envg") ) envg <- env()  # global environment
 
 envg$EXPENV <- list()
 envg$EXPENV$bucket_dir <- "~/buckets/b1"
-envg$EXPENV$exp_dir <- "~/buckets/b1/expw2/"
-envg$EXPENV$wf_dir <- "~/buckets/b1/flow2/"
+
+envg$EXPENV$exp_dir <- "~/buckets/b1/expw3_div_mult/"
+envg$EXPENV$wf_dir <- "~/buckets/b1/flow3_div_mult/"
 envg$EXPENV$repo_dir <- "~/dmeyf2024/"
 envg$EXPENV$datasets_dir <- "~/buckets/b1/datasets/"
 envg$EXPENV$messenger <- "~/install/zulip_enviar.sh"
@@ -235,7 +236,7 @@ CN_canaritos_asesinos_base <- function( pinputexps, ratio, desvio)
   if( -1 == (param_local <- exp_init())$resultado ) return( 0 )# linea fija
 
 
-  param_local$meta$script <- "/src/wf-etapas/z1601_CN_canaritos_asesinos.r"
+  param_local$meta$script <- "/src/wf-etapas/1601_CN_canaritos_asesinos.r"
 
   # Parametros de un LightGBM que se genera para estimar la column importance
   param_local$train$clase01_valor1 <- c( "BAJA+2", "BAJA+1")
