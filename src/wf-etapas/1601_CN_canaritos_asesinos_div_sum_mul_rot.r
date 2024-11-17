@@ -102,6 +102,7 @@ CanaritosAsesinos <- function(
     ],
     free_raw_data = FALSE
   )
+  cat( "inicio CanaritosAsesinos dataset train()\n")
 
   dvalid <- lgb.Dataset(
     data = data.matrix(dataset[get(envg$PARAM$dataset_metadata$periodo) %in% envg$PARAM$train$validation, campos_buenos, with = FALSE]),
@@ -113,7 +114,8 @@ CanaritosAsesinos <- function(
     free_raw_data = FALSE
   )
 
-
+  cat( "inicio CanaritosAsesinos dataset valid()\n")
+  
   param <- list(
     objective = "binary",
     metric = "custom",
@@ -145,7 +147,8 @@ CanaritosAsesinos <- function(
     param = param,
     verbose = -100
   )
-
+  cat( "inicio CanaritosAsesinos fin train()\n")
+  
   tb_importancia <- lgb.importance(model = modelo)
   tb_importancia[, pos := .I]
 
@@ -220,22 +223,30 @@ CanaritosAsesinos <- function(
           mult <- col_i * col_k
           
           # Assign new columns
-          new_cols[[paste0(i, "_rot45c1_", k)]] <- as.numeric(rot45c1)
+          #new_cols[[paste0(i, "_rot45c1_", k)]] <- as.numeric(rot45c1)
           new_cols[[paste0(i, "_rot45c2_", k)]] <- as.numeric(rot45c2)
           new_cols[[paste0(i, "_minus_", k)]] <- as.numeric(minus)
           new_cols[[paste0(i, "_sum_", k)]] <- as.numeric(sum_cols)
           new_cols[[paste0(i, "_div_", k)]] <- as.numeric(div)
           new_cols[[paste0(i, "_mult_", k)]] <- as.numeric(mult)
+          
+          new_cols[[paste0(i, "rot45c1", k)]] <- float::float(rot45c1)
+          new_cols[[paste0(i, "_rot45c2_", k)]] <- float::float(rot45c2)
+          new_cols[[paste0(i, "_minus_", k)]] <-float::float(minus)
+          new_cols[[paste0(i, "_sum_", k)]] <- float::float(sum_cols)
+          new_cols[[paste0(i, "_div_", k)]] <- float::float(div)
+          new_cols[[paste0(i, "_mult_", k)]] <- float::float(mult)
         }
       }
     }
     
+    cat( "new table()\n")
     # Create data.table with new columns
     data_calculations <- as.data.table(new_cols)
     
     # Combine original data with new calculations
     result <- cbind(data, data_calculations)
-    
+    cat( "end bind()\n")
     # Ensure all new columns are numeric (float)
     cols_to_convert <- names(data_calculations)
     result[, (cols_to_convert) := lapply(.SD, as.numeric), .SDcols = cols_to_convert]
