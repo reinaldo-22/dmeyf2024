@@ -192,55 +192,7 @@ CanaritosAsesinos <- function(
   
   
   
-  library(data.table)
-  div_sum_top_features_r <- function(data, top_features) {
-    # Select top features and add _std suffix
-    data_top <- data[, ..top_features]
-    #setnames(data_top, paste0(names(data_top), "_std"))
-    
-    # Create new columns list
-    new_cols <- list()
-    
-    # Get all combinations of columns
-    cols <- names(data_top)
-    for (i in cols) {
-      for (k in cols) {
-        if (i != k) {
-          # Extract columns as numeric vectors for calculations
-          col_i <- data_top[[i]]
-          col_k <- data_top[[k]]
-          
-          # Rotation calculations
-          rot45c1 <- (col_i * cos(pi/4) - sin(pi/4) * col_k)
-          rot45c2 <- (col_i * sin(pi/4) + cos(pi/4) * col_k)
-          
-          # Basic operations
-          minus <- col_i - col_k
-          sum_cols <- col_i + col_k
-          # Safe division
-          div <- ifelse(col_k != 0, col_i / col_k, 0)
-          # Multiplication
-          mult <- col_i * col_k
-          
-          # Assign new columns
-          #new_cols[[paste0(i, "_rot45c1_", k)]] <- as.numeric(rot45c1)
-          #new_cols[[paste0(i, "_rot45c2_", k)]] <- as.numeric(rot45c2)
-          #new_cols[[paste0(i, "_minus_", k)]] <- as.numeric(minus)
-          #new_cols[[paste0(i, "_sum_", k)]] <- as.numeric(sum_cols)
-          #new_cols[[paste0(i, "_div_", k)]] <- as.numeric(div)
-          #new_cols[[paste0(i, "_mult_", k)]] <- as.numeric(mult)
-          
-          new_cols[[paste0(i, "rot45c1", k)]] <- float::float(rot45c1)
-          new_cols[[paste0(i, "_rot45c2_", k)]] <- float::float(rot45c2)
-          new_cols[[paste0(i, "_minus_", k)]] <-float::float(minus)
-          new_cols[[paste0(i, "_sum_", k)]] <- float::float(sum_cols)
-          new_cols[[paste0(i, "_div_", k)]] <- float::float(div)
-          new_cols[[paste0(i, "_mult_", k)]] <- float::float(mult)
-        }
-      }
-    }
-    
-    div_sum_top_features_r2 <- function(data, top_features) {
+    div_sum_top_features <- function(data, top_features) {
       library(data.table)
       library(float)
       
@@ -327,7 +279,7 @@ CanaritosAsesinos <- function(
   top_50_features <- col_utiles[1:50]
   
   
-  dataset <- div_sum_top_features_r2(dataset, top_50_features)
+  dataset <- div_sum_top_features(dataset, top_50_features)
   # repito todo de nuevo
   
   
