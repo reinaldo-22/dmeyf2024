@@ -377,7 +377,8 @@ HT_tuning_semillerio <- function( pinputexps, semillerio, bo_iteraciones, bypass
     min_sum_hessian_in_leaf = 0.001, #  min_sum_hessian_in_leaf >= 0.0
     lambda_l1 = 0.0, # lambda_l1 >= 0.0
     lambda_l2 = 0.0, # lambda_l2 >= 0.0
-    max_bin = 31L, # lo debo dejar fijo, no participa de la BO
+    #max_bin = 31L, # lo debo dejar fijo, no participa de la BO
+    max_bin = 91L, # lo debo dejar fijo, no participa de la BO
 
     num_iterations = 9999L, # un numero muy grande
     early_stopping_base = 200L,
@@ -463,7 +464,7 @@ KA_evaluate_kaggle_semillerio <- function( pinputexps )
 
   param_local$envios_desde <- 10500L
   param_local$envios_hasta <- 12050L
-  param_local$envios_salto <-   500L
+  param_local$envios_salto <-   250L
   param_local$competition <- "dm-ey-f-2024-segunda"
 
   return( exp_correr_script( param_local ) ) # linea fija
@@ -502,7 +503,7 @@ wf_SEMI_ago_orden227 <- function( pnombrewf )
   fm <- FM_final_models_lightgbm_semillerio( 
     c(ht, ts8), # los inputs
     ranks = c(1), # 1 = el mejor de la bayesian optimization
-    semillerio = 100,   # cantidad de semillas finales
+    semillerio = 150,   # cantidad de semillas finales
     repeticiones_exp = 4  # cantidad de repeticiones del semillerio
   )
 

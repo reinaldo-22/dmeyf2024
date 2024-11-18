@@ -276,11 +276,13 @@ CanaritosAsesinos <- function(
   cat("typeof(dataset):", typeof(dataset), "\n")  # prints: typeof(x): double 
   cat("typeof(col_utiles):", typeof(col_utiles), "\n")  # prints: typeof(x): double 
   #top_features = col_utiles[1:60]
+  
+  #dataset = div_sum_top_features(data, top_features)
+  top_features <- setdiff(col_utiles[1:50], c("clase_ternaria", "foto_mes", "numero_de_cliente"))
   print(top_features)
   print(typeof(top_features))
   print(str(top_features))
-  #dataset = div_sum_top_features(data, top_features)
-  top_features <- setdiff(col_utiles[1:50], c("clase_ternaria", "foto_mes", "numero_de_cliente"))
+  
   for (i in top_features) {
     for (k in top_features) {
       if (i != k) {
