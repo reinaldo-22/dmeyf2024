@@ -69,14 +69,20 @@ fganancia_lgbm_meseta <- function(probs, datos) {
 library(data.table)
 library(float)
 
+
 div_sum_top_features <- function(data, top_features) {
-  # Ensure data is a data.table and convert input columns to numeric
-  if (!is.data.table(data)) {
-    data <- as.data.table(data)
+  # Determine input type
+  input_type <- typeof(data)
+  
+  # Convert to data.table based on input type
+  if (input_type == "list") {
+    data_dt <- as.data.table(do.call(cbind, data))
+  } else {
+    data_dt <- as.data.table(data)
   }
   
   # Select and convert top features to numeric
-  data_top <- data[, ..top_features]
+  data_top <- data_dt[, ..top_features]
   data_top <- data_top[, lapply(.SD, function(x) as.numeric(as.character(x)))]
   
   # Initialize lists for new columns
@@ -132,7 +138,15 @@ div_sum_top_features <- function(data, top_features) {
   data_calculations <- setDT(setNames(new_cols, col_names))
   
   # Combine with original data
-  result <- cbind(data, data_calculations)
+  result_dt <- cbind(data_dt, data_calculations)
+  
+  # Convert back to original input type
+  if (input_type == "list") {
+    # Convert back to a list of columns
+    result <- as.list(result_dt)
+  } else {
+    result <- result_dt
+  }
   
   return(result)
 }
@@ -258,15 +272,20 @@ CanaritosAsesinos <- function(
   # # # # # ##repito
   # # # # # ##repito
   # # # # # ##repito
-  top_features = col_utiles[1:30]
-  dataset = div_sum_top_feature(data, top_features)
+  
+  cat("typeof(dataset):", typeof(dataset), "\n")  # prints: typeof(x): double 
+  cat("typeof(col_utiles):", typeof(col_utiles), "\n")  # prints: typeof(x): double 
+  top_features = col_utiles[1:50]
+  
+  dataset = div_sum_top_features(data, top_features)
   
     # # # # # ##repito
     # # # # # ##repito
     # # # # # ##repito
-  
+  cat("typeof(dataset):", typeof(dataset), "\n")  # prints: typeof(x): double 
+  cat("typeof(col_utiles):", typeof(col_utiles), "\n")  # prints: typeof(x): double 
     
-    cat( "inicio CanaritosAsesinos()\n")
+    cat( "inicio2 CanaritosAsesinos()\n")
   gc(verbose= FALSE)
   dataset[, clase01 := 0L ]
   dataset[ get(envg$PARAM$dataset_metadata$clase) %in% envg$PARAM$train$clase01_valor1, 
