@@ -232,7 +232,7 @@ CN_canaritos_asesinos_base <- function( pinputexps, ratio, desvio)
   if( -1 == (param_local <- exp_init())$resultado ) return( 0 )# linea fija
 
 
-  param_local$meta$script <- "/src/wf-etapas/1601_CN_canaritos_asesinos_v5r"
+  param_local$meta$script <- "/src/wf-etapas/1601_CN_canaritos_asesinos_v5.r"
 
   # Parametros de un LightGBM que se genera para estimar la column importance
   param_local$train$clase01_valor1 <- c( "BAJA+2", "BAJA+1")
