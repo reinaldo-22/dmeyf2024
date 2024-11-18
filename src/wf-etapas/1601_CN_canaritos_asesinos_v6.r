@@ -275,7 +275,7 @@ CanaritosAsesinos <- function(
   
   cat("typeof(dataset):", typeof(dataset), "\n")  # prints: typeof(x): double 
   cat("typeof(col_utiles):", typeof(col_utiles), "\n")  # prints: typeof(x): double 
-  top_features = col_utiles[1:60]
+  #top_features = col_utiles[1:60]
   print(top_features)
   print(typeof(top_features))
   print(str(top_features))
