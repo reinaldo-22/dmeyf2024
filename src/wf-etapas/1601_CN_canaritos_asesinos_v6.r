@@ -35,22 +35,22 @@ VPOS_CORTE <- c()
 fganancia_lgbm_meseta <- function(probs, datos) {
   vlabels <- get_field(datos, "label")
   vpesos <- get_field(datos, "weight")
-
+  
   tbl <- as.data.table(list(
     "prob" = probs,
     "gan" = ifelse(vlabels == 1 & vpesos > 1, envg$PARAM$train$gan1, envg$PARAM$train$gan0)
   ))
-
+  
   setorder(tbl, -prob)
   tbl[, posicion := .I]
   tbl[, gan_acum := cumsum(gan)]
   setorder(tbl, -gan_acum) # voy por la meseta
-
+  
   gan <- mean(tbl[1:500, gan_acum]) # meseta de tamaño 500
-
+  
   pos_meseta <- tbl[1:500, median(posicion)]
   VPOS_CORTE <<- c(VPOS_CORTE, pos_meseta)
-
+  
   return(list(
     "name" = "ganancia",
     "value" = gan,
@@ -158,32 +158,32 @@ div_sum_top_features <- function(data, top_features) {
 GVEZ <- 1
 
 CanaritosAsesinos <- function(
-  canaritos_ratio,
-  canaritos_desvios,
-  canaritos_semilla) {
-
+    canaritos_ratio,
+    canaritos_desvios,
+    canaritos_semilla) {
+  
   cat( "inicio CanaritosAsesinos()\n")
   gc(verbose= FALSE)
   dataset[, clase01 := 0L ]
   dataset[ get(envg$PARAM$dataset_metadata$clase) %in% envg$PARAM$train$clase01_valor1, 
-      clase01 := 1L ]
-
+           clase01 := 1L ]
+  
   set.seed(canaritos_semilla, kind = "L'Ecuyer-CMRG")
   for (i in 1:(ncol(dataset) * canaritos_ratio)) {
     dataset[, paste0("canarito", i) := runif(nrow(dataset))]
   }
-
+  
   campos_buenos <- setdiff(
     colnames(dataset),
     c( campitos, "clase01")
   )
-
+  
   azar <- runif(nrow(dataset))
-
+  
   dataset[, entrenamiento :=
-    as.integer( get(envg$PARAM$dataset_metadata$periodo) %in% envg$PARAM$train$training &
-      (clase01 == 1 | azar < envg$PARAM$train$undersampling))]
-
+            as.integer( get(envg$PARAM$dataset_metadata$periodo) %in% envg$PARAM$train$training &
+                          (clase01 == 1 | azar < envg$PARAM$train$undersampling))]
+  
   dtrain <- lgb.Dataset(
     data = data.matrix(dataset[entrenamiento == TRUE, campos_buenos, with = FALSE]),
     label = dataset[entrenamiento == TRUE, clase01],
@@ -193,7 +193,7 @@ CanaritosAsesinos <- function(
     ],
     free_raw_data = FALSE
   )
-
+  
   dvalid <- lgb.Dataset(
     data = data.matrix(dataset[get(envg$PARAM$dataset_metadata$periodo) %in% envg$PARAM$train$validation, campos_buenos, with = FALSE]),
     label = dataset[get(envg$PARAM$dataset_metadata$periodo) %in% envg$PARAM$train$validation, clase01],
@@ -203,8 +203,8 @@ CanaritosAsesinos <- function(
     ],
     free_raw_data = FALSE
   )
-
-
+  
+  
   param <- list(
     objective = "binary",
     metric = "custom",
@@ -227,7 +227,7 @@ CanaritosAsesinos <- function(
     early_stopping_rounds = 200,
     num_threads = 1
   )
-
+  
   set.seed(canaritos_semilla, kind = "L'Ecuyer-CMRG")
   modelo <- lgb.train(
     data = dtrain,
@@ -236,36 +236,36 @@ CanaritosAsesinos <- function(
     param = param,
     verbose = -100
   )
-
+  
   tb_importancia <- lgb.importance(model = modelo)
   tb_importancia[, pos := .I]
-
+  
   fwrite(tb_importancia,
-    file = paste0("impo_", GVEZ, ".txt"),
-    sep = "\t"
+         file = paste0("impo_", GVEZ, ".txt"),
+         sep = "\t"
   )
-
+  
   GVEZ <<- GVEZ + 1
-
+  
   umbral <- tb_importancia[
     Feature %like% "canarito",
     median(pos) + canaritos_desvios * sd(pos)
   ] # Atencion corto en la mediana mas desvios!!
-
+  
   col_utiles <- tb_importancia[
     pos < umbral & !(Feature %like% "canarito"),
     Feature
   ]
-
+  
   col_utiles <- unique(c(
     col_utiles,
     c(campitos, "mes")
   ))
-
+  
   col_inutiles <- setdiff(colnames(dataset), col_utiles)
-
+  
   dataset[, (col_inutiles) := NULL]
-
+  
   cat( "fin CanaritosAsesinos()\n")
   
   
@@ -275,17 +275,36 @@ CanaritosAsesinos <- function(
   
   cat("typeof(dataset):", typeof(dataset), "\n")  # prints: typeof(x): double 
   cat("typeof(col_utiles):", typeof(col_utiles), "\n")  # prints: typeof(x): double 
-  top_features = col_utiles[1:50]
+  top_features = col_utiles[1:60]
+  print(top_features)
+  print(typeof(top_features))
+  print(str(top_features))
+  #dataset = div_sum_top_features(data, top_features)
+  top_features <- setdiff(col_utiles[1:50], c("clase_ternaria", "foto_mes", "numero_de_cliente"))
+  for (i in top_features) {
+    for (k in top_features) {
+      if (i != k) {
+        print(k)
+        dataset[, paste0(i, "_rot45c1_", k) := as.numeric(get(i) * cos(pi / 4) - get(k) * sin(pi / 4))]
+        dataset[, paste0(i, "_rot45c2_", k) := as.numeric(get(i) * sin(pi / 4) + get(k) * cos(pi / 4))]
+        dataset[, paste0(i, "_minus_", k) := as.numeric(get(i) - get(k))]
+        dataset[, paste0(i, "_sum_", k) := as.numeric(get(i) + get(k))]
+        dataset[, paste0(i, "_div_", k) := as.numeric(get(i) / get(k))]
+        dataset[, paste0(i, "_mult_", k) := as.numeric(get(i) * get(k))]
+      }
+    }
+  }
   
-  dataset = div_sum_top_features(data, top_features)
   
-    # # # # # ##repito
-    # # # # # ##repito
-    # # # # # ##repito
   cat("typeof(dataset):", typeof(dataset), "\n")  # prints: typeof(x): double 
   cat("typeof(col_utiles):", typeof(col_utiles), "\n")  # prints: typeof(x): double 
-    
-    cat( "inicio2 CanaritosAsesinos()\n")
+  
+  cat( "inicio2 CanaritosAsesinos()\n")
+  
+  
+  # # # # # ##repito
+  # # # # # ##repito
+  # # # # # ##repito
   gc(verbose= FALSE)
   dataset[, clase01 := 0L ]
   dataset[ get(envg$PARAM$dataset_metadata$clase) %in% envg$PARAM$train$clase01_valor1, 
@@ -399,7 +418,7 @@ action_inicializar()
 
 
 envg$PARAM$CanaritosAsesinos$semilla <- envg$PARAM$semilla
-  
+
 # cargo el dataset donde voy a entrenar
 # esta en la carpeta del exp_input y siempre se llama  dataset.csv.gz
 # cargo el dataset
@@ -423,9 +442,9 @@ GrabarOutput()
 #  lags o media moviles ( todas menos las obvias )
 
 campitos <- c( envg$PARAM$dataset_metadata$primarykey,
-  envg$PARAM$dataset_metadata$entity_id,
-  envg$PARAM$dataset_metadata$periodo,
-  envg$PARAM$dataset_metadata$clase )
+               envg$PARAM$dataset_metadata$entity_id,
+               envg$PARAM$dataset_metadata$periodo,
+               envg$PARAM$dataset_metadata$clase )
 
 campitos <- unique( campitos )
 
@@ -459,16 +478,16 @@ GrabarOutput()
 cat( "escritura del dataset\n")
 cat( "Iniciando grabado del dataset\n" )
 fwrite(dataset,
-  file = "dataset.csv.gz",
-  logical01 = TRUE,
-  sep = ","
+       file = "dataset.csv.gz",
+       logical01 = TRUE,
+       sep = ","
 )
 cat( "Finalizado grabado del dataset\n" )
 
 # copia la metadata sin modificar
 cat( "escritura de metadata\n")
 write_yaml( envg$PARAM$dataset_metadata, 
-  file="dataset_metadata.yml" )
+            file="dataset_metadata.yml" )
 
 #------------------------------------------------------------------------------
 
@@ -486,8 +505,8 @@ tb_campos <- as.data.table(list(
 ))
 
 fwrite(tb_campos,
-  file = "dataset.campos.txt",
-  sep = "\t"
+       file = "dataset.campos.txt",
+       sep = "\t"
 )
 
 #------------------------------------------------------------------------------
