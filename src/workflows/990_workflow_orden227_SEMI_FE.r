@@ -503,8 +503,8 @@ wf_SEMI_ago_orden227 <- function( pnombrewf )
   fm <- FM_final_models_lightgbm_semillerio( 
     c(ht, ts8), # los inputs
     ranks = c(1), # 1 = el mejor de la bayesian optimization
-    semillerio = 150,   # cantidad de semillas finales
-    repeticiones_exp = 4  # cantidad de repeticiones del semillerio
+    semillerio = 50,   # cantidad de semillas finales
+    repeticiones_exp = 7  # cantidad de repeticiones del semillerio
   )
 
   SC_scoring_semillerio( c(fm, ts8) )
