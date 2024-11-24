@@ -483,27 +483,27 @@ wf_SEMI_ago_orden227 <- function( pnombrewf )
   # Etapa especificacion dataset de la Segunda Competencia Kaggle
   DT_incorporar_dataset( "~/buckets/b1/datasets/competencia_02.csv.gz")
 
-  CA_catastrophe_base( metodo="MachineLearning")
+  CA_catastrophe_base( metodo="Ninguno")
   FEintra_manual_base()
-  DR_drifting_base(metodo="rank_cero_fijo")
+  DR_drifting_base(metodo="rank_simple")
   FEhist_base()
   ultimo <- FErf_attributes_base()
-  CN_canaritos_asesinos_base(ratio=0.2, desvio=0)
+  CN_canaritos_asesinos_base(ratio=0.2, desvio=-1)
 
   ts8 <- TS_strategy_base8()
 
   # la Bayesian Optimization con el semillerio dentro
   ht <- HT_tuning_semillerio(
-    semillerio = 50, # semillerio dentro de la Bayesian Optim
-    bo_iteraciones = 10  # iteraciones inteligentes, apenas 10
+    semillerio = 40, # semillerio dentro de la Bayesian Optim
+    bo_iteraciones = 15  # iteraciones inteligentes, apenas 10
   )
 
 
   fm <- FM_final_models_lightgbm_semillerio( 
     c(ht, ts8), # los inputs
     ranks = c(1), # 1 = el mejor de la bayesian optimization
-    semillerio = 100,   # cantidad de semillas finales
-    repeticiones_exp = 4  # cantidad de repeticiones del semillerio
+    semillerio = 50,   # cantidad de semillas finales
+    repeticiones_exp = 8  # cantidad de repeticiones del semillerio
   )
 
   SC_scoring_semillerio( c(fm, ts8) )
