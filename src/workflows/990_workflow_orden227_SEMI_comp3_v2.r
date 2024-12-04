@@ -436,8 +436,8 @@ KA_evaluate_kaggle_semillerio <- function( pinputexps )
   
   param_local$irepes_submit <- 1:20 # misterioso parametro, no preguntar
   
-  param_local$envios_desde <- 11000L
-  param_local$envios_hasta <- 12550L
+  param_local$envios_desde <- 10000L
+  param_local$envios_hasta <- 10850L
   param_local$envios_salto <-   250L
   param_local$competition <- "dm-ey-f-2024-tercera"
   
