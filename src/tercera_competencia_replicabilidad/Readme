@@ -1,0 +1,31 @@
+1) usar el script z502_Segmentacion_v3_relativo_v6_GCP_5_minLGBM_3_5K2_time_selection_v1_gcp8_solo_frcst.py
+1.1) crear ternaria con: crete_ternaria( path_set_crudo, path_set_con_ternaria)     
+1.2) ejecutar  data = add_forecast(data) guardar como  data.to_csv(desktop_folder + 'competencia_03_forecast.csv')    
+2.1) con la ternaria ejecutar 909_run_orden227_comp3_v2.r
+3.1) en R corregir nombres de 'competencia_03_forecast.csv' con corregirJson_features.r
+3.2) con el dataset con conmbres corregidos, ejecutar 909_run_orden227_comp3_v3_Frcst2.r y 909_run_orden227_comp3_v3_Frcst.r
+4.1) ejecutar estas lineas de Python para obtener la solucion elegida. Modificar paths.
+#meta_ensamble
+expperimento_b2 = '/home/reinaldo_medina_gcp/buckets/b2/expw227_c3_v2/KA-0002/'
+expperimento_b3 = '/home/reinaldo_medina_gcp/buckets/b2/expw227_c3_v3/KA-0001/'
+experimento_f1=  '/home/reinaldo_medina_gcp/buckets/b2/expw227_c3_v3_FRCST/KA-0001/'
+experimento_f2= '/home/reinaldo_medina_gcp/buckets/b2/expw227_c3_v3_FRCST_2/KA-0001/'
+
+#expperimento_b2 = pd.read_csv (expperimento_b2 + 'KA-0002_01_019_r1_10000.csv')
+expperimento_b2 = pd.read_csv (expperimento_b2 + 'KA-0002_01_019_r1_10250.csv')
+expperimento_b3 = pd.read_csv (expperimento_b3 + 'KA-0001_01_009_r1_09800.csv')
+experimento_f1 = pd.read_csv (experimento_f1 + 'KA-0001_01_028_r1_10000.csv')
+experimento_f2 = pd.read_csv (experimento_f2 + 'KA-0001_01_029_r1_10000.csv')
+                  
+
+merged = pd.merge(experimento_f1, experimento_f2, on='numero_de_cliente', how='outer', suffixes=('_f1', '_f2'))
+merged = pd.merge(merged, expperimento_b2, on='numero_de_cliente', how='outer')
+
+
+merged.rename(columns={'Predicted': 'Predicted_b3'}, inplace=True)
+merged['Predicted'] = merged['Predicted_f1'] +merged['Predicted_f2'] 
+merged['Predicted'] = merged['Predicted'].combine_first(merged['Predicted_b3'])
+merged['Predicted'] = merged['Predicted'].apply(lambda x: 1 if x >= 1 else 0)
+np.sum(merged['Predicted'])
+merged= merged[['numero_de_cliente','Predicted']]
+merged.to_csv( experimento+ 'frcts1y2_10000_b2_10250.csv', index=False)
